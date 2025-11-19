@@ -127,6 +127,15 @@ declare global {
         quantity : number
         subPrice : number
     }
+
+    interface IRating {
+        id : string
+        menuId : string
+        fullName : string
+        stars : number
+        comment : string
+        images : string[]
+    }
 }
 
 

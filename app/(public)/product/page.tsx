@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -8,15 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, Star } from "lucide-react";
 import { AddToCart, GetCategories, GetFoodItems } from "@/services/api";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import PaginationControl from "@/components/common/PaginationControl";
 import { useAuth } from "@/context/context";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -317,101 +309,13 @@ export default function ProductPage() {
                   ))}
                 </div>
 
-                {/* Pagination */}
-                {total > 0 && (() => {
-                const totalPages = Math.ceil(total / pageSize);
-                
-                // If total pages is 7 or less, show all pages
-                const getVisiblePages = () => {
-                  if (totalPages <= 7) {
-                    return Array.from({ length: totalPages }, (_, i) => i + 1);
-                  }
-                  
-                  // For more than 7 pages, show smart pagination
-                  const visiblePages: number[] = [1]; // Always show first page
-                  
-                  if (page <= 3) {
-                    // Show first 5 pages when near the start
-                    for (let i = 2; i <= 5; i++) {
-                      visiblePages.push(i);
-                    }
-                  } else if (page >= totalPages - 2) {
-                    // Show last 5 pages when near the end
-                    for (let i = totalPages - 4; i <= totalPages; i++) {
-                      if (i > 1 && !visiblePages.includes(i)) {
-                        visiblePages.push(i);
-                      }
-                    }
-                  } else {
-                    // Show pages around current page
-                    visiblePages.push(page - 1, page, page + 1);
-                  }
-                  
-                  if (totalPages > 1 && !visiblePages.includes(totalPages)) {
-                    visiblePages.push(totalPages); // Always show last page
-                  }
-                  
-                  return visiblePages.sort((a, b) => a - b);
-                };
-                
-                const visiblePages = getVisiblePages();
-                
-                return (
-                  <Pagination className="mt-8">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                          className={
-                            page === 1
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-                      
-                      {visiblePages.map((pageNum, index) => {
-                        const prevPage = visiblePages[index - 1];
-                        const showEllipsis = prevPage && pageNum - prevPage > 1;
-
-                        return (
-                          <React.Fragment key={pageNum}>
-                            {showEllipsis && (
-                              <PaginationItem>
-                                <PaginationEllipsis />
-                              </PaginationItem>
-                            )}
-                            <PaginationItem>
-                              <PaginationLink
-                                onClick={() => setPage(pageNum)}
-                                isActive={page === pageNum}
-                                className="cursor-pointer"
-                              >
-                                {pageNum}
-                              </PaginationLink>
-                            </PaginationItem>
-                          </React.Fragment>
-                        );
-                      })}
-
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() =>
-                            setPage((prev) =>
-                              Math.min(totalPages, prev + 1)
-                            )
-                          }
-                          className={
-                            page >= totalPages
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                );
-              })()}
+                <PaginationControl
+                  page={page}
+                  pageSize={pageSize}
+                  total={total}
+                  onPageChange={setPage}
+                  className="mt-8"
+                />
               </div>
             </div>
           </div>

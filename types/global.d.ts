@@ -46,10 +46,14 @@ declare global {
         name: string
         category: string
         description: string
-        price: number
+        originalPrice: number
+        discountPrice: number
+        averageRating: number
+        ratingCount : number
         imageUrl: string
         soldQuantity: number
         isAvailable: boolean
+        isOnSale : boolean
         createdAt: string
     }
 

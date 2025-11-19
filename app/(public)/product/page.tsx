@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Star } from "lucide-react";
 import { AddToCart, GetCategories, GetFoodItems } from "@/services/api";
 import {
   Pagination,
@@ -32,6 +32,15 @@ export default function ProductPage() {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const formatCurrency = (value: number) =>
+    value.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+
+  const getEffectivePrice = (item: IFoodItem) =>
+    item.isOnSale ? item.discountPrice : item.originalPrice;
+
+  const formatRating = (value: number) =>
+    Number.isFinite(value) ? value.toFixed(1) : "0.0";
 
   const fetchCategories = async () => {
      let res = await GetCategories();
@@ -83,8 +92,12 @@ export default function ProductPage() {
 
   const handleAddToCart = async (item: IFoodItem) => {
     if (!user?.id) return;
+    if (!item.isAvailable) {
+      toast.error("Sản phẩm tạm hết hàng");
+      return;
+    }
     const cartItems: ICartItemRequest[] = [
-      { menuId: item.id, quantity: 1, unitPrice: item.price }
+      { menuId: item.id, quantity: 1, unitPrice: getEffectivePrice(item) }
     ];
     let res =  await AddToCart(user.id, cartItems)
     if (res.isSuccess && Number(res.statusCode) === 201){
@@ -231,6 +244,18 @@ export default function ProductPage() {
                     >
                       {/* Image Section */}
                       <div className="relative aspect-[16/9]">
+                        <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
+                          {item.isOnSale && (
+                            <Badge className="bg-red-500 text-white hover:bg-red-500/90">
+                              Giảm giá
+                            </Badge>
+                          )}
+                          {!item.isAvailable && (
+                            <Badge className="bg-gray-900/80 text-white hover:bg-gray-900/90">
+                              Tạm hết
+                            </Badge>
+                          )}
+                        </div>
                         <Image
                           src={item.imageUrl}
                           alt={item.name}
@@ -248,25 +273,44 @@ export default function ProductPage() {
                         <CardDescription className="text-sm text-gray-600 mb-2 leading-relaxed">
                           {item.description}
                         </CardDescription>
-                        <p className="text-xs text-gray-500 mt-2">
+                        <div className="flex items-center justify-between text-sm mt-2">
+                          <div className="flex items-center gap-1 text-amber-500">
+                            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                            <span className="font-semibold">
+                              {formatRating(item.averageRating)}
+                            </span>
+                            <span className="text-gray-500">
+                              ({item.ratingCount ?? 0})
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
                           {item.soldQuantity} đã bán
                         </p>
                       </CardHeader>
 
                       {/* Footer with Price and Add Button */}
                       <CardFooter className="px-4 pb-4 pt-0 flex items-center justify-between">
-                        <div className="text-xl font-bold text-gray-900">
-                          {item.price.toLocaleString('vi-VN', {style: 'currency', currency: 'VND'})}
+                        <div className="flex flex-col">
+                          <span className="text-xl font-bold text-gray-900">
+                            {formatCurrency(getEffectivePrice(item))}
+                          </span>
+                          {item.isOnSale && (
+                            <span className="text-sm text-gray-500 line-through">
+                              {formatCurrency(item.originalPrice)}
+                            </span>
+                          )}
                         </div>
                         <Button 
                           className="bg-black text-white hover:bg-black/90 rounded-md px-4 py-2 h-9 flex items-center gap-1.5 cursor-pointer" 
+                          disabled={!item.isAvailable}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleAddToCart(item);
                           }}
                         >
                           <Plus className="h-4 w-4" />
-                          Thêm vào giỏ hàng
+                          {item.isAvailable ? "Thêm vào giỏ hàng" : "Hết hàng"}
                         </Button>
                       </CardFooter>
                     </Card>

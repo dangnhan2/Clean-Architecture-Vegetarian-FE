@@ -6,7 +6,8 @@ import Image from "next/image";
 import { ChevronLeft, Plus, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ProductReviewsSection } from "@/components/product/reviews";
 import { GetFoodItemById, AddToCart, GetRecommendedFoodItems } from "@/services/api";
 import { useAuth } from "@/context/context";
 import { useParams, useRouter } from "next/navigation";
@@ -172,16 +173,6 @@ const ProductDetailPage = () => {
                   <span className="text-gray-500">
                     {product?.soldQuantity ?? 0} đã bán
                   </span>
-                  <Badge
-                    variant={product?.isAvailable ? "outline" : "secondary"}
-                    className={
-                      product?.isAvailable
-                        ? "border-green-500 text-green-600"
-                        : "bg-red-100 text-red-600 border-transparent"
-                    }
-                  >
-                    {product?.isAvailable ? "Còn hàng" : "Tạm hết"}
-                  </Badge>
                 </div>
 
                 {/* Separator */}
@@ -247,8 +238,17 @@ const ProductDetailPage = () => {
           </CardContent>
         </Card>
 
+        {/* Reviews Section */}
+        {product?.id && (
+          <div className="mt-12 mb-12">
+            <ProductReviewsSection
+              menuId={product.id}
+            />
+          </div>
+        )}
+
         {/* Divider */}
-        <div className="border-t border-gray-200 mt-12 mb-8"></div>
+        <div className="border-t border-gray-200 mb-8"></div>
 
         {/* You May Also Like Section */}
         <div>

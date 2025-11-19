@@ -121,3 +121,7 @@ export const CreateOrderWithCOD = (userId : string, voucherId : string | null | 
 export const GetOrdersByUser = (userId : string, query : string) => {
     return axios.get<IBackendRes<IModelPaginate<IOrderHistory>>>(`/api/Common/user/${userId}/orders?${query}`)
 }
+
+export const GetRatingsByMenu = (menuId : string, query : string) => {
+    return axios.get<IBackendRes<IModelPaginate<IRating>>>(`/api/Common/ratings/menu/${menuId}?${query}`);
+}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import UserAvatar from "./UserAvatar";
+import { useAuth } from "@/context/context";
 
 interface UserMenuProps {
   fullName?: string;
@@ -9,6 +10,7 @@ interface UserMenuProps {
 }
 
 const UserMenu = ({ fullName, avatarUrl, onLogout }: UserMenuProps) => {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
   return (
@@ -54,12 +56,22 @@ const UserMenu = ({ fullName, avatarUrl, onLogout }: UserMenuProps) => {
               Lịch sử đơn hàng
             </Link>
             
+            {user?.role === "Admin" && (
+              <Link
+                href="/admin"
+                className="block px-4 py-2 hover:bg-gray-50 border-t border-gray-200 mt-1 pt-2"
+                onClick={() => setOpen(false)}
+              >
+                Admin Dashboard
+              </Link>
+            )}
+            
             <button
               onClick={() => {
                 setOpen(false);
                 onLogout();
               }}
-              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600"
+              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600 border-t border-gray-200 mt-1 pt-2"
             >
               Đăng xuất
             </button>

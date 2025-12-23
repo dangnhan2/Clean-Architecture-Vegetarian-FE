@@ -12,6 +12,8 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogFooter,
+    DialogDescription,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/context/context";
 import { CreateOrderWithCOD, CreateOrderWithQR, GetAddresses, GetVouchers, ValidateVoucher } from "@/services/api";
@@ -34,6 +36,8 @@ const CheckoutPage = () => {
     const [selectedAddressId, setSelectedAddressId] = useState<string>("");
     const [note, setNote] = useState<string>("");
     const [voucherValidationInfo, setVoucherValidationInfo] = useState<IVoucherValidationInfo>();
+    const [confirmOrderDialogOpen, setConfirmOrderDialogOpen] = useState(false);
+    const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const cartItems = cart?.items || [];
 
     const fetchAddresses = async () => {
@@ -50,13 +54,6 @@ const CheckoutPage = () => {
             fetchAddresses();
         }
     }, [user?.id]);
-
-    useEffect(() => {
-        if (cartItems.length === 0) {
-            toast.error("Giỏ hàng trống");
-            router.push("/cart");
-        }
-    }, [cartItems.length, router]);
 
     const formatCurrency = (amount: number) => {
         return amount.toLocaleString("vi-VN") + "₫";
@@ -131,7 +128,19 @@ const CheckoutPage = () => {
     const total = subtotal + tax - voucherDiscount;
 
     const handlePlaceOrder = async () => {
-        if (user?.id) {
+        if (!user?.id) {
+            toast.error("Vui lòng đăng nhập để đặt hàng");
+            return;
+        }
+
+        if (!selectedAddressId) {
+            toast.error("Vui lòng chọn địa chỉ giao hàng");
+            setConfirmOrderDialogOpen(false);
+            return;
+        }
+
+        setIsPlacingOrder(true);
+        try {
             if (paymentMethod === "QR") {
                 let res = await CreateOrderWithQR(
                     user.id,
@@ -143,7 +152,10 @@ const CheckoutPage = () => {
                 );
                 if (res.isSuccess && Number(res.statusCode) === 201) {
                     toast.success(res.message)
+                    setConfirmOrderDialogOpen(false);
                     router.push(`${res.data?.checkoutUrl}`)
+                } else {
+                    toast.error(res.message || "Không thể đặt hàng. Vui lòng thử lại");
                 }
             }
             else if (paymentMethod === "COD") {
@@ -157,11 +169,27 @@ const CheckoutPage = () => {
                 );
                 if (res.isSuccess && Number(res.statusCode) === 201) {
                     toast.success(res.message)
+                    setConfirmOrderDialogOpen(false);
                     fetchCart();
                     router.push(`/checkout/success?orderCode=${res.data}&paymentMethod=${paymentMethod}`)
+                } else {
+                    toast.error(res.message || "Không thể đặt hàng. Vui lòng thử lại");
                 }
             }
+        } catch (error) {
+            console.error("Error placing order:", error);
+            toast.error("Có lỗi xảy ra. Vui lòng thử lại");
+        } finally {
+            setIsPlacingOrder(false);
         }
+    };
+
+    const handleOpenConfirmDialog = () => {
+        if (!selectedAddressId) {
+            toast.error("Vui lòng chọn địa chỉ giao hàng");
+            return;
+        }
+        setConfirmOrderDialogOpen(true);
     };
 
     return (
@@ -385,7 +413,7 @@ const CheckoutPage = () => {
                                         <span>Thuế ({TAX_RATE * 100}%)</span>
                                         <span>{formatCurrency(tax)}</span>
                                     </div>
-                                    {selectedVoucher && (
+                                    {selectedVoucher && voucherValidationInfo && (
                                         <div className="flex items-center justify-between text-sm text-green-600">
                                             <span>Giảm giá</span>
                                             <span>-{formatCurrency(voucherValidationInfo.discountAmount)}</span>
@@ -396,7 +424,7 @@ const CheckoutPage = () => {
                                 <div className="border-t pt-4">
                                     <div className="flex items-center justify-between mb-4">
                                         <span className="font-bold text-lg">Tổng cộng</span>
-                                        {selectedVoucher ? (
+                                        {selectedVoucher && voucherValidationInfo ? (
                                             <span className="font-bold text-lg">
                                                 {formatCurrency(voucherValidationInfo.totalAmount)}
                                             </span>
@@ -408,8 +436,9 @@ const CheckoutPage = () => {
                                     </div>
 
                                     <Button
-                                        onClick={handlePlaceOrder}
+                                        onClick={handleOpenConfirmDialog}
                                         className="w-full bg-black hover:bg-black/90 text-white h-12"
+                                        disabled={!selectedAddressId}
                                     >
                                         Đặt hàng
                                     </Button>
@@ -520,8 +549,56 @@ const CheckoutPage = () => {
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* Confirm Order Dialog */}
+            <Dialog open={confirmOrderDialogOpen} onOpenChange={setConfirmOrderDialogOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Xác nhận đặt hàng</DialogTitle>
+                        <DialogDescription>
+                            Bạn có chắc chắn muốn đặt hàng này không?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Tổng tiền:</span>
+                                <span className="font-semibold">
+                                    {selectedVoucher && voucherValidationInfo
+                                        ? formatCurrency(voucherValidationInfo.totalAmount)
+                                        : formatCurrency(total)
+                                    }
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Phương thức thanh toán:</span>
+                                <span className="font-semibold">
+                                    {paymentMethod === "QR" ? "Thanh toán QR" : "Thanh toán khi nhận hàng"}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setConfirmOrderDialogOpen(false)}
+                            disabled={isPlacingOrder}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            onClick={handlePlaceOrder}
+                            disabled={isPlacingOrder}
+                            className="bg-black hover:bg-black/90 text-white"
+                        >
+                            {isPlacingOrder ? "Đang xử lý..." : "Xác nhận đặt hàng"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
 
 export default CheckoutPage;
+

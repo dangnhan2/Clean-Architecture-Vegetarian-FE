@@ -5,7 +5,7 @@ declare global {
         message: string;
         isSuccess: boolean;
         statusCode: number | string;
-        data?: T | null | undefined;
+        data?: T;
     }
 
     interface IModelPaginate<T> {
@@ -126,6 +126,7 @@ declare global {
         menuImage : string
         quantity : number
         subPrice : number
+        isRated : boolean
     }
 
     interface IRating {

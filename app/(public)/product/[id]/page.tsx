@@ -142,8 +142,8 @@ const ProductDetailPage = () => {
                   )}
                 </div>
                 <Image
-                  src={product?.imageUrl || ""}
-                  alt={product?.name || ""}
+                  src={product?.imageUrl || "/HapplyFoodLogo.jpg"}
+                  alt={product?.name || "Hình ảnh món ăn"}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -240,7 +240,7 @@ const ProductDetailPage = () => {
 
         {/* Reviews Section */}
         {product?.id && (
-          <div className="mt-12 mb-12">
+          <div className="mt-12 mb-12" id="reviews">
             <ProductReviewsSection
               menuId={product.id}
             />

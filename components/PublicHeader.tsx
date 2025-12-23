@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { Logout } from "@/services/api";
 import { toast } from "sonner";
 
-const Header = () => {
+const PublicHeader = () => {
   const { user, isAuthen, setAccessToken, setIsAuthen, setUser, cart } = useAuth();
   const router = useRouter();
 
@@ -111,4 +111,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default PublicHeader;

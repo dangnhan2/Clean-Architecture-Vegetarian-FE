@@ -90,6 +90,67 @@ export const GetFoodItemById = (id : string) => {
     return axios.get<IBackendRes<IFoodItem>>(`/api/Common/menu/${id}`);
 }
 
+export const CreateFoodItem = (
+    name: string,
+    categoryId: string,
+    description: string | null | undefined,
+    originalPrice: number,
+    discountPrice: number,
+    isAvailable: boolean,
+    isOnSale: boolean,
+    thumbnail: File
+) => {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("categoryId", categoryId);
+    formData.append("description", description || "");
+    formData.append("originalPrice", String(originalPrice));
+    formData.append("discountPrice", String(discountPrice));
+    formData.append("isAvailable", String(isAvailable));
+    formData.append("isOnSale", String(isOnSale));
+    formData.append("thumbnail", thumbnail);
+
+    return axios.post<IBackendRes<IFoodItem>>(`/api/Admin/menu`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+}
+
+export const EditFoodItem = (
+    id: string,
+    name: string,
+    categoryId: string,
+    description: string | null | undefined,
+    originalPrice: number,
+    discountPrice: number,
+    isAvailable: boolean,
+    isOnSale: boolean,
+    thumbnail: File | null | undefined
+) => {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("categoryId", categoryId);
+    formData.append("description", description || "");
+    formData.append("originalPrice", String(originalPrice));
+    formData.append("discountPrice", String(discountPrice));
+    formData.append("isAvailable", String(isAvailable));
+    formData.append("isOnSale", String(isOnSale));
+    if (thumbnail) {
+        formData.append("thumbnail", thumbnail);
+    }
+
+    return axios.put<IBackendRes<IFoodItem>>(`/api/Admin/menu/${id}`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+}
+
+export const DeleteFoodItem = (id: string) => {
+    return axios.delete<IBackendRes<null>>(`/api/Admin/menu/${id}`);
+}
+
 export const GetUserById = (id : string | undefined) => {
     return axios.get<IBackendRes<IUser>>(`/api/Common/user/${id}`);
 }
@@ -125,3 +186,30 @@ export const GetOrdersByUser = (userId : string, query : string) => {
 export const GetRatingsByMenu = (menuId : string, query : string) => {
     return axios.get<IBackendRes<IModelPaginate<IRating>>>(`/api/Common/ratings/menu/${menuId}?${query}`);
 }
+
+export const RatingMenu = async (
+    menuId: string,
+    orderId: string,
+    userId: string,
+    stars: number,
+    comment: string,
+    images: File[]
+) => {
+    const formData = new FormData();
+    formData.append("menuId", menuId);
+    formData.append("orderId", orderId);
+    formData.append("userId", userId);
+    formData.append("stars", String(stars));
+    formData.append("comment", comment);
+
+    // append ảnh (nhiều ảnh)
+    images.forEach((img) => {
+        formData.append("images", img); 
+    });
+
+    return axios.post<IBackendRes<string>>(`/api/Common/rating`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+};

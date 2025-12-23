@@ -63,15 +63,15 @@ export const GetCategories = () => {
 }
 
 export const AddCategory = (name : string) => {
-    return axios.post<IBackendRes<null>>(`/api/Common/category`, {name});
+    return axios.post<IBackendRes<null>>(`/api/Admin/category`, {name});
 }
 
 export const UpdateCategory = (id : string, name : string) => {
-    return axios.put<IBackendRes<null>>(`/api/Common/category/${id}`, {name});
+    return axios.put<IBackendRes<null>>(`/api/Admin/category/${id}`, {name});
 }
 
 export const DeleteCategory = (id : string) => {
-    return axios.delete<IBackendRes<null>>(`/api/Common/category/${id}`);
+    return axios.delete<IBackendRes<null>>(`/api/Admin/category/${id}`);
 }
 
 export const GetFoodItems = (query : string | undefined) => {

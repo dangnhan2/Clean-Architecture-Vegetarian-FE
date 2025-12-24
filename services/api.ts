@@ -167,6 +167,22 @@ export const GetVouchers = () => {
     return axios.get<IBackendRes<IVoucher[]>>(`/api/Common/user/vouchers`);
 }
 
+export const GetVouchersAdmin = (query : string) => {
+    return axios.get<IBackendRes<IModelPaginate<IVoucher>>>(`/api/Admin/vouchers?${query}`);
+}
+
+export const CreateVoucher = (code : string,  discountType : string, discountValue : number, maxDiscount : number, minOrderAmount : number, startDate : string, endDate : string, usageLimit : number, perUserLimit : number, isActive : boolean) => {
+    return axios.post<IBackendRes<IVoucher>>(`/api/Admin/voucher`, {code, discountType, discountValue, maxDiscount, minOrderAmount, startDate, endDate, usageLimit, perUserLimit, isActive});
+}
+
+export const EditVoucher = (id : string, code : string,  discountType : string, discountValue : number, maxDiscount : number, minOrderAmount : number, startDate : string, endDate : string, usageLimit : number, perUserLimit : number, isActive : boolean) => {
+    return axios.put<IBackendRes<IVoucher>>(`/api/Admin/voucher/${id}`, {code, discountType, discountValue, maxDiscount, minOrderAmount, startDate, endDate, usageLimit, perUserLimit, isActive});
+}
+
+export const DeleteVoucher = (id : string) => {
+    return axios.delete<IBackendRes<null>>(`/api/Admin/voucher/${id}`);
+}
+
 export const ValidateVoucher = (userId : string, voucherId : string) => {
     return axios.post<IBackendRes<IVoucherValidationInfo>>(`/api/Common/user/voucher/validation`, {userId, voucherId});
 }

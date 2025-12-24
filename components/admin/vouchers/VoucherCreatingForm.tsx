@@ -1,6 +1,6 @@
 "use client";
 
-import { z } from "zod";
+import { boolean, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
@@ -75,6 +75,11 @@ const VoucherCreatingForm = ({ onSuccess, onCancel }: VoucherCreatingFormProps) 
 
     const handleSubmit = async (values: VoucherFormValues) => {
         setIsSubmitting(true);
+
+        if (values.isActive == null){
+            values.isActive = false;
+        }
+
         try {
             const res = await CreateVoucher(
                 values.code.trim(),

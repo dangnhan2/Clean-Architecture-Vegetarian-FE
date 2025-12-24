@@ -229,3 +229,7 @@ export const RatingMenu = async (
         },
     });
 };
+
+export const GetUsers = (query : string) => {
+    return axios.get<IBackendRes<IModelPaginate<IUser>>>(`/api/Admin/users?${query}`);
+}

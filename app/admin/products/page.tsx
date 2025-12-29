@@ -31,11 +31,18 @@ const AdminProductsPage = () => {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<IFoodItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [searchText, setSearchText] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("");
 
     const fetchFoodItems = async () => {
         let query = `page=${page}&pageSize=${pageSize}`
+        
+        if(searchText !== ""){
+            query += `&search=${searchText}`
+        }
 
         let res = await GetFoodItems(query);
+       
         // console.log(res);
         if (res.isSuccess && Number(res.statusCode) === 200) {
             if (res?.data) {
@@ -54,7 +61,7 @@ const AdminProductsPage = () => {
 
     useEffect(() => {
         fetchFoodItems();
-    }, [page, pageSize]);
+    }, [page, pageSize, searchText]);
 
     useEffect(() => {
         fetchCategories();
@@ -148,10 +155,32 @@ const AdminProductsPage = () => {
                             <Input
                                 placeholder="Tìm kiếm món ăn..."
                                 className="bg-white"
+                                value={searchText}
+                                onChange={(e) => {
+                                    setSearchText(e.target.value);
+                                    // Reset category khi user nhập vào search
+                                    if (selectedCategory !== "") {
+                                        setSelectedCategory("");
+                                    }
+                                }}
                             />
                         </div>
-                        <select className="w-full sm:w-48 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400">
-                            <option>Tất cả danh mục</option>
+                        <select 
+                            className="w-full sm:w-48 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                            value={selectedCategory}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setSelectedCategory(value);
+                                if (value && value !== "") {
+                                    // Tìm category name từ id
+                                    const category = categories?.find(cat => cat.id === value);
+                                    setSearchText(category?.name || "");
+                                } else {
+                                    setSearchText("");
+                                }
+                            }}
+                        >
+                            <option value="">Tất cả danh mục</option>
                             {categories?.map((category) => (
                                 <option key={category.id} value={category.id}>{category.name}</option>
                             ))}

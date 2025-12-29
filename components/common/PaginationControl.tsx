@@ -35,7 +35,8 @@ const PaginationControl = ({
   }, [pageSize, total]);
 
   const visiblePages = useMemo(() => {
-    if (totalPages <= 1) return [];
+    if (totalPages <= 0) return [];
+    if (totalPages === 1) return [1];
     if (totalPages <= 7) {
       return Array.from({ length: totalPages }, (_, index) => index + 1);
     }
@@ -70,7 +71,7 @@ const PaginationControl = ({
     onPageChange(targetPage);
   };
 
-  if (!totalPages || totalPages <= 1) {
+  if (!totalPages || totalPages <= 0) {
     return null;
   }
 
@@ -84,7 +85,7 @@ const PaginationControl = ({
           />
         </PaginationItem>
 
-        {visiblePages.map((pageNumber, index) => {
+        {visiblePages.length > 0 && visiblePages.map((pageNumber, index) => {
           const prevPage = visiblePages[index - 1];
           const showEllipsis =
             typeof prevPage === "number" && pageNumber - prevPage > 1;

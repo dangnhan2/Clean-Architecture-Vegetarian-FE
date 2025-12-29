@@ -90,15 +90,7 @@ const AdminCategoriesPage = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-                        <div className="w-full sm:w-72">
-                            <Input
-                                placeholder="Tìm kiếm danh mục..."
-                                className="bg-white"
-                            />
-                        </div>
-                    </div>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-end gap-3">                   
                     <Button
                         className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg transition-shadow"
                         onClick={() => setIsCreateDialogOpen(true)}

@@ -22,7 +22,7 @@ declare global {
 
     interface IUser {
         email: string
-        fullName: string
+        userName: string
         id: string | undefined
         imageUrl: string
         phoneNumber: string | null
@@ -136,6 +136,33 @@ declare global {
         stars : number
         comment : string
         images : string[]
+    }
+
+    interface IDashboard {
+        totalOrdersToday: number
+        paidOrdersToday: number
+        cancelledOrdersToday: number
+        revenueToday: number
+        totalPaidOrdersMontly: number
+        revenueMonthly: number
+        totalCustomers: number
+        totalMenuItems: number
+        topSellingDishes: ITopSellingDish[]
+        topBuyers?: ITopBuyer[]
+    }
+
+    interface ITopSellingDish {
+        name: string
+        imageUrl: string
+        soldQuantity: number
+    }
+
+    interface ITopBuyer {
+        id: string
+        fullName: string
+        email: string
+        phoneNumber: string
+        totalAmountInAMonth: number
     }
 }
 

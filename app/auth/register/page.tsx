@@ -20,6 +20,11 @@ import { Register } from "@/services/api"
 import { toast } from "sonner"
 
 const registerSchema = z.object({
+  userName: z.string().min(2, {
+    message: "Tên người dùng phải có ít nhất 5 ký tự.",
+  }).max(50, {
+    message: "Tên người dùng không được vượt quá 50 ký tự.",
+  }),
   email: z.string().email({
     message: "Email không hợp lệ.",
   }),
@@ -41,6 +46,7 @@ export default function RegisterPage() {
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      userName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -48,7 +54,7 @@ export default function RegisterPage() {
   })
 
   const onSubmit = async (values: RegisterFormValues) => {
-    let res = await Register(values.email, values.password, values.confirmPassword)
+    let res = await Register(values.email, values.userName, values.password, values.confirmPassword)
 
     if (res?.isSuccess && Number(res.statusCode) === 201) {
       toast.success(res.message);
@@ -75,6 +81,21 @@ export default function RegisterPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
            
+            {/* UserName Field */}
+            <FormField
+              control={form.control}
+              name="userName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tên người dùng</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nhập tên người dùng của bạn" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* Email Field */}
             <FormField
               control={form.control}

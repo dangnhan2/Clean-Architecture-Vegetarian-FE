@@ -100,7 +100,7 @@ const PublicHeader = () => {
         </div>
         
         {isAuthen === true ? (
-          <UserMenu fullName={user?.fullName} avatarUrl={user?.imageUrl} onLogout={handleLogout} />
+          <UserMenu fullName={user?.userName} avatarUrl={user?.imageUrl} onLogout={handleLogout} />
         ) : (
           <Link href="/auth/login">
             <Button variant="ghost" className="font-semibold">Sign In</Button>

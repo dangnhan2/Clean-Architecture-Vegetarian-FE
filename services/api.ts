@@ -4,8 +4,8 @@ export const Login = (email : string, password : string) => {
    return axios.post<IBackendRes<IAuthResponse>>(`/api/Auth/login`, {email, password});
 }
 
-export const Register = (email: string, password : string, confirmPassword : string) => {
-    return axios.post<IBackendRes<string>>(`/api/Auth/register`, {email, password, confirmPassword});
+export const Register = (email: string, userName : string, password : string, confirmPassword : string) => {
+    return axios.post<IBackendRes<string>>(`/api/Auth/register`, {email,userName, password, confirmPassword});
 }
 
 export const VerifyEmail = (email : string, otp : string) => {
@@ -48,14 +48,13 @@ export const DeleteAddress = (id : string) => {
     return axios.delete<IBackendRes<null>>(`/api/Common/address/${id}`);
 }
 
-export const UpdateProfile = (id : string | undefined, fullName : string, phoneNumber : string, avatar : File | undefined) => {
+export const UpdateProfile = (id : string | undefined, phoneNumber : string, avatar : File | undefined) => {
     const formData = new FormData();
-    formData.append("fullName", fullName);
     formData.append("phoneNumber", phoneNumber);
     if (avatar) {
         formData.append("avatar", avatar);
     }
-    return axios.put<IBackendRes<null>>(`/api/Common/user/account/${id}`, formData);
+    return axios.put<IBackendRes<null>>(`/api/Common/user/profile/${id}`, formData);
 }
 
 export const GetCategories = () => {
@@ -232,4 +231,12 @@ export const RatingMenu = async (
 
 export const GetUsers = (query : string) => {
     return axios.get<IBackendRes<IModelPaginate<IUser>>>(`/api/Admin/users?${query}`);
+}
+
+export const GetOrdersAdmin = (query : string) => {
+    return axios.get<IBackendRes<IModelPaginate<IOrderHistory>>>(`/api/Admin/orders?${query}`);
+}
+
+export const GetDashboard = () => {
+    return axios.get<IBackendRes<IDashboard>>(`/api/Admin/dashboard`);
 }

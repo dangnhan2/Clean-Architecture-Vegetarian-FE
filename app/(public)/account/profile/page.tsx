@@ -83,7 +83,7 @@ const ProfilePage = () => {
 
   // Schema cập nhật thông tin cá nhân
   const profileSchema = z.object({
-    fullName: z.string().min(2, "Vui lòng nhập họ tên"),
+    userName: z.string().min(1, "Tên người dùng không được để trống"),
     email: z.string().email("Email không hợp lệ"),
     phoneNumber: z.string().min(10, "Vui lòng nhập số điện thoại"),
     avatar: z.instanceof(File).optional(),
@@ -92,7 +92,7 @@ const ProfilePage = () => {
   const profileForm = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      fullName: user?.fullName ?? "",
+      userName: user?.userName ?? "",
       email: user?.email ?? "",
       phoneNumber: user?.phoneNumber ?? "",
       avatar: undefined,
@@ -177,7 +177,7 @@ const ProfilePage = () => {
   };
 
   const handleUpdateProfile = async (values: ProfileValues) => {
-    let res = await UpdateProfile(user?.id, values.fullName, values.phoneNumber, values.avatar);
+    let res = await UpdateProfile(user?.id, values.phoneNumber, values.avatar);
     if (res.isSuccess && Number(res.statusCode) === 200) {
       toast.success(res.message);
       refresh();
@@ -193,7 +193,7 @@ const ProfilePage = () => {
    useEffect(() => {
     if (user) {
       profileForm.reset({
-        fullName: user?.fullName ?? "",
+        userName: user?.userName ?? "",
         email: user?.email ?? "",
         phoneNumber: user?.phoneNumber ?? "",
         avatar: undefined,
@@ -286,12 +286,12 @@ const ProfilePage = () => {
                 <div className="sm:col-span-2 space-y-4">
                   <FormField
                     control={profileForm.control}
-                    name="fullName"
+                    name="userName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Họ và tên</FormLabel>
+                        <FormLabel>Tên người dùng</FormLabel>
                         <FormControl>
-                          <Input placeholder="Nguyễn Văn A" {...field} />
+                          <Input placeholder="Tên người dùng" {...field} readOnly />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

@@ -12,6 +12,7 @@ import VoucherEditingForm from "@/components/admin/vouchers/VoucherEditingForm";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { DeleteVoucher, GetVouchersAdmin } from "@/services/api";
 import { toast } from "sonner";
+import PaginationControl from "@/components/common/PaginationControl";
 
 
 const AdminVouchersPage = () => {
@@ -187,6 +188,14 @@ const AdminVouchersPage = () => {
                             </div>
                         </div>
                     </CardContent>
+
+                    <PaginationControl
+                        page={page}
+                        pageSize={pageSize}
+                        total={total}
+                        onPageChange={setPage}
+                        className="mt-8"
+                    />
                 </Card>
 
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

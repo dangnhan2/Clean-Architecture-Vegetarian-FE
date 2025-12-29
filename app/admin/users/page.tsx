@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { GetUsers } from "@/services/api";
+import PaginationControl from "@/components/common/PaginationControl";
 
 
 const AdminUsersPage = () => {
@@ -23,6 +24,11 @@ const AdminUsersPage = () => {
 
     const fetchUsers = async () => {
         let query = `page=${page}&pageSize=${pageSize}`
+
+        if(searchText !== ""){
+            query += `&search=${searchText}`
+        }
+
         let res = await GetUsers(query);
         if (res.isSuccess && Number(res.statusCode) === 200) {
             if (res?.data) {
@@ -34,7 +40,7 @@ const AdminUsersPage = () => {
 
     useEffect(() => {
         fetchUsers();
-    }, [page, pageSize]);
+    }, [page, pageSize, searchText]);
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-white p-6 md:p-10">
@@ -80,14 +86,14 @@ const AdminUsersPage = () => {
                                             <div className="relative h-12 w-12 overflow-hidden rounded-full border">
                                                 <Image
                                                     src={user.imageUrl || "https://placehold.co/96x96"}
-                                                    alt={user.fullName}
+                                                    alt={user.userName}
                                                     fill
                                                     className="object-cover"
                                                     sizes="48px"
                                                 />
                                             </div>
                                         </div>
-                                        <div className="font-semibold text-gray-900">{user.fullName}</div>
+                                        <div className="font-semibold text-gray-900">{user.userName}</div>
                                         <div className="text-gray-700">{user.phoneNumber || "--"}</div>
                                         <div className="text-gray-700 truncate">{user.email}</div>                         
                                         <div className="flex items-center gap-2 justify-end">
@@ -113,6 +119,14 @@ const AdminUsersPage = () => {
                             </div>
                         </div>
                     </CardContent>
+
+                    <PaginationControl
+                        page={page}
+                        pageSize={pageSize}
+                        total={total}
+                        onPageChange={setPage}
+                        className="mt-8"
+                    />
                 </Card>
 
                 {/* <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>

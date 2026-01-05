@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Pencil, Trash2 } from "lucide-react";
-import { GetCategories, DeleteCategory } from "@/services/api";
+import { DeleteCategory, GetCategoriesByAdmin } from "@/services/api";
 import { useEffect, useState } from "react";
 import CategoryCreatingForm from "@/components/admin/categories/CategoryCreatingForm";
 import CategoryEditingForm from "@/components/admin/categories/CategoryEditingForm";
@@ -21,7 +21,7 @@ const AdminCategoriesPage = () => {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchCategories = async () => {
-        const res = await GetCategories();
+        const res = await GetCategoriesByAdmin();
         if (res.isSuccess && Number(res.statusCode) === 200) {
             setCategories(res.data);
         }

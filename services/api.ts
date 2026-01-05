@@ -1,23 +1,23 @@
 import axios from './interceptor';
 
 export const Login = (email : string, password : string) => {
-   return axios.post<IBackendRes<IAuthResponse>>(`/api/Auth/login`, {email, password});
+   return axios.post<IBackendRes<IAuthResponse>>(`/api/auth/login`, {email, password});
 }
 
 export const Register = (email: string, userName : string, password : string, confirmPassword : string) => {
-    return axios.post<IBackendRes<string>>(`/api/Auth/register`, {email,userName, password, confirmPassword});
+    return axios.post<IBackendRes<string>>(`/api/auth/register`, {email,userName, password, confirmPassword});
 }
 
 export const VerifyEmail = (email : string, otp : string) => {
-    return axios.post<IBackendRes<string>>(`/api/Auth/email/verify`, {email, otp});
+    return axios.post<IBackendRes<string>>(`/api/auth/email/verify`, {email, otp});
 }
 
 export const RefreshToken = () => {
-    return axios.post<IBackendRes<IAuthResponse>>(`/api/Auth/refresh`);
+    return axios.post<IBackendRes<IAuthResponse>>(`/api/auth/refresh`);
 }
 
 export const Logout = () => {
-    return axios.post<IBackendRes<null>>(`/api/Auth/logout`);
+    return axios.post<IBackendRes<null>>(`/api/auth/logout`);
 }
 
 export const ChangePassword = (id : string | undefined, currentPassword : string, newPassword: string, confirmPassword : string) => {
@@ -25,27 +25,27 @@ export const ChangePassword = (id : string | undefined, currentPassword : string
 }
 
 export const ForgetPassword = (email : string) => {
-    return axios.post<IBackendRes<null>>(`/api/Auth/forgot-password`, {email});
+    return axios.post<IBackendRes<null>>(`/api/auth/forgot-password`, {email});
 }
 
 export const ResetPassword = (email : string, newPassword: string, confirmPassword : string) => {
-    return axios.post<IBackendRes<null>>(`/api/Auth/reset-password`, {email, newPassword, confirmPassword});
+    return axios.post<IBackendRes<null>>(`/api/auth/reset-password`, {email, newPassword, confirmPassword});
 }
 
 export const GetAddresses = (id : string) => {
-    return axios.get<IBackendRes<IAddress[]>>(`/api/Common/user/${id}/addresses`);
+    return axios.get<IBackendRes<IAddress[]>>(`/api/common/user/${id}/addresses`);
 }
 
 export const AddAddress = (userId : string, address : string, fullName : string, phoneNumber : string) => {
-    return axios.post<IBackendRes<null>>(`/api/Common/address`, {userId, address, fullName, phoneNumber});
+    return axios.post<IBackendRes<null>>(`/api/common/address`, {userId, address, fullName, phoneNumber});
 }
 
 export const UpdateAddress = (id : string, userId : string, address : string, fullName : string, phoneNumber : string) => {
-    return axios.put<IBackendRes<null>>(`/api/Common/address/${id}`, {userId, address, fullName, phoneNumber});
+    return axios.put<IBackendRes<null>>(`/api/common/address/${id}`, {userId, address, fullName, phoneNumber});
 }
 
 export const DeleteAddress = (id : string) => {
-    return axios.delete<IBackendRes<null>>(`/api/Common/address/${id}`);
+    return axios.delete<IBackendRes<null>>(`/api/common/address/${id}`);
 }
 
 export const UpdateProfile = (id : string | undefined, phoneNumber : string, avatar : File | undefined) => {
@@ -54,39 +54,46 @@ export const UpdateProfile = (id : string | undefined, phoneNumber : string, ava
     if (avatar) {
         formData.append("avatar", avatar);
     }
-    return axios.put<IBackendRes<null>>(`/api/Common/user/profile/${id}`, formData);
+    return axios.put<IBackendRes<null>>(`/api/common/user/profile/${id}`, formData);
 }
 
 export const GetCategories = () => {
     return axios.get<IBackendRes<ICategory[]>>(`/api/Common/categories`);
 }
 
+export const GetCategoriesByAdmin = () => {
+    return axios.get<IBackendRes<ICategory[]>>(`/api/admin/categories`);
+}
+
 export const AddCategory = (name : string) => {
-    return axios.post<IBackendRes<null>>(`/api/Admin/category`, {name});
+    return axios.post<IBackendRes<null>>(`/api/admin/category`, {name});
 }
 
 export const UpdateCategory = (id : string, name : string) => {
-    return axios.put<IBackendRes<null>>(`/api/Admin/category/${id}`, {name});
+    return axios.put<IBackendRes<null>>(`/api/admin/category/${id}`, {name});
 }
 
 export const DeleteCategory = (id : string) => {
-    return axios.delete<IBackendRes<null>>(`/api/Admin/category/${id}`);
+    return axios.delete<IBackendRes<null>>(`/api/admin/category/${id}`);
 }
 
+export const GetFoodItemsByAdmin = (query : string | undefined) => {
+    return axios.get<IBackendRes<IModelPaginate<IFoodItem>>>(`/api/admin/menus?${query}`);
+}
 export const GetFoodItems = (query : string | undefined) => {
-    return axios.get<IBackendRes<IModelPaginate<IFoodItem>>>(`/api/Common/menus?${query}`);
+    return axios.get<IBackendRes<IModelPaginate<IFoodItem>>>(`/api/common/menus?${query}`);
 }
 
 export const GetFeaturedFoodItems = () => {
-    return axios.get<IBackendRes<IFoodItem[]>>(`/api/Common/menus/featured`);
+    return axios.get<IBackendRes<IFoodItem[]>>(`/api/common/menus/featured`);
 }
 
 export const GetRecommendedFoodItems = (id : string) => {
-    return axios.get<IBackendRes<IFoodItem[]>>(`/api/Common/menus/${id}/related`);
+    return axios.get<IBackendRes<IFoodItem[]>>(`/api/common/menus/${id}/related`);
 }
 
 export const GetFoodItemById = (id : string) => {
-    return axios.get<IBackendRes<IFoodItem>>(`/api/Common/menu/${id}`);
+    return axios.get<IBackendRes<IFoodItem>>(`/api/common/menu/${id}`);
 }
 
 export const CreateFoodItem = (
@@ -109,7 +116,7 @@ export const CreateFoodItem = (
     formData.append("isOnSale", String(isOnSale));
     formData.append("thumbnail", thumbnail);
 
-    return axios.post<IBackendRes<IFoodItem>>(`/api/Admin/menu`, formData, {
+    return axios.post<IBackendRes<IFoodItem>>(`/api/admin/menu`, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         },
@@ -139,7 +146,7 @@ export const EditFoodItem = (
         formData.append("thumbnail", thumbnail);
     }
 
-    return axios.put<IBackendRes<IFoodItem>>(`/api/Admin/menu/${id}`, formData, {
+    return axios.put<IBackendRes<IFoodItem>>(`/api/admin/menu/${id}`, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         },
@@ -147,59 +154,59 @@ export const EditFoodItem = (
 }
 
 export const DeleteFoodItem = (id: string) => {
-    return axios.delete<IBackendRes<null>>(`/api/Admin/menu/${id}`);
+    return axios.delete<IBackendRes<null>>(`/api/admin/menu/${id}`);
 }
 
 export const GetUserById = (id : string | undefined) => {
-    return axios.get<IBackendRes<IUser>>(`/api/Common/user/${id}`);
+    return axios.get<IBackendRes<IUser>>(`/api/common/user/${id}`);
 }
 
 export const GetCartByUser = (id :string) => {
-    return axios.get<IBackendRes<ICart>>(`/api/Common/cart?id=${id}`);
+    return axios.get<IBackendRes<ICart>>(`/api/common/cart?id=${id}`);
 }
 
 export const AddToCart = (userId : string, cartItems : ICartItemRequest[]) => {
-    return axios.post<IBackendRes<null>>(`/api/Common/cart`, {userId, cartItems});
+    return axios.post<IBackendRes<null>>(`/api/common/cart`, {userId, cartItems});
 }
 
 export const GetVouchers = () => {
-    return axios.get<IBackendRes<IVoucher[]>>(`/api/Common/user/vouchers`);
+    return axios.get<IBackendRes<IVoucher[]>>(`/api/common/user/vouchers`);
 }
 
 export const GetVouchersAdmin = (query : string) => {
-    return axios.get<IBackendRes<IModelPaginate<IVoucher>>>(`/api/Admin/vouchers?${query}`);
+    return axios.get<IBackendRes<IModelPaginate<IVoucher>>>(`/api/admin/vouchers?${query}`);
 }
 
 export const CreateVoucher = (code : string,  discountType : string, discountValue : number, maxDiscount : number, minOrderAmount : number, startDate : string, endDate : string, usageLimit : number, perUserLimit : number, isActive : boolean) => {
-    return axios.post<IBackendRes<IVoucher>>(`/api/Admin/voucher`, {code, discountType, discountValue, maxDiscount, minOrderAmount, startDate, endDate, usageLimit, perUserLimit, isActive});
+    return axios.post<IBackendRes<IVoucher>>(`/api/admin/voucher`, {code, discountType, discountValue, maxDiscount, minOrderAmount, startDate, endDate, usageLimit, perUserLimit, isActive});
 }
 
 export const EditVoucher = (id : string, code : string,  discountType : string, discountValue : number, maxDiscount : number, minOrderAmount : number, startDate : string, endDate : string, usageLimit : number, perUserLimit : number, isActive : boolean) => {
-    return axios.put<IBackendRes<IVoucher>>(`/api/Admin/voucher/${id}`, {code, discountType, discountValue, maxDiscount, minOrderAmount, startDate, endDate, usageLimit, perUserLimit, isActive});
+    return axios.put<IBackendRes<IVoucher>>(`/api/admin/voucher/${id}`, {code, discountType, discountValue, maxDiscount, minOrderAmount, startDate, endDate, usageLimit, perUserLimit, isActive});
 }
 
 export const DeleteVoucher = (id : string) => {
-    return axios.delete<IBackendRes<null>>(`/api/Admin/voucher/${id}`);
+    return axios.delete<IBackendRes<null>>(`/api/admin/voucher/${id}`);
 }
 
 export const ValidateVoucher = (userId : string, voucherId : string) => {
-    return axios.post<IBackendRes<IVoucherValidationInfo>>(`/api/Common/user/voucher/validation`, {userId, voucherId});
+    return axios.post<IBackendRes<IVoucherValidationInfo>>(`/api/common/user/voucher/validation`, {userId, voucherId});
 }
 
 export const CreateOrderWithQR = (userId : string, voucherId : string | null | undefined, addressId : string, note : string | null | undefined, paymentMethod : string, totalAmount : number) => {
-    return axios.post<IBackendRes<IOrderInfo>>(`/api/Common/order/qr`, {userId, voucherId, addressId, note, paymentMethod, totalAmount});
+    return axios.post<IBackendRes<IOrderInfo>>(`/api/common/order/qr`, {userId, voucherId, addressId, note, paymentMethod, totalAmount});
 }
 
 export const CreateOrderWithCOD = (userId : string, voucherId : string | null | undefined, addressId : string, note : string | null | undefined, paymentMethod : string, totalAmount : number) => {
-    return axios.post<IBackendRes<Number>>(`/api/Common/order/cod`, {userId, voucherId, addressId, note, paymentMethod, totalAmount});
+    return axios.post<IBackendRes<Number>>(`/api/common/order/cod`, {userId, voucherId, addressId, note, paymentMethod, totalAmount});
 }
 
 export const GetOrdersByUser = (userId : string, query : string) => {
-    return axios.get<IBackendRes<IModelPaginate<IOrderHistory>>>(`/api/Common/user/${userId}/orders?${query}`)
+    return axios.get<IBackendRes<IModelPaginate<IOrderHistory>>>(`/api/common/user/${userId}/orders?${query}`)
 }
 
 export const GetRatingsByMenu = (menuId : string, query : string) => {
-    return axios.get<IBackendRes<IModelPaginate<IRating>>>(`/api/Common/ratings/menu/${menuId}?${query}`);
+    return axios.get<IBackendRes<IModelPaginate<IRating>>>(`/api/common/ratings/menu/${menuId}?${query}`);
 }
 
 export const RatingMenu = async (
@@ -222,7 +229,7 @@ export const RatingMenu = async (
         formData.append("images", img); 
     });
 
-    return axios.post<IBackendRes<string>>(`/api/Common/rating`, formData, {
+    return axios.post<IBackendRes<string>>(`/api/common/rating`, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         },
@@ -230,13 +237,29 @@ export const RatingMenu = async (
 };
 
 export const GetUsers = (query : string) => {
-    return axios.get<IBackendRes<IModelPaginate<IUser>>>(`/api/Admin/users?${query}`);
+    return axios.get<IBackendRes<IModelPaginate<IUser>>>(`/api/admin/users?${query}`);
 }
 
 export const GetOrdersAdmin = (query : string) => {
-    return axios.get<IBackendRes<IModelPaginate<IOrderHistory>>>(`/api/Admin/orders?${query}`);
+    return axios.get<IBackendRes<IModelPaginate<IOrderHistory>>>(`/api/admin/orders?${query}`);
 }
 
 export const GetDashboard = () => {
-    return axios.get<IBackendRes<IDashboard>>(`/api/Admin/dashboard`);
+    return axios.get<IBackendRes<IDashboard>>(`/api/admin/dashboard`);
+}
+
+export const GetNotificationByAdmin = (adminId: string) => {
+    return axios.get<IBackendRes<INotification[]>>(`/api/admin/notifications?id=${adminId}`)
+}
+
+export const GetUnreadNotificationCount = (adminId: string) => {
+    return axios.get<IBackendRes<number>>(`/api/admin/notifications/unread-count?id=${adminId}`)
+}
+
+export const DeleteNotification = (id : string) => {
+    return axios.delete<IBackendRes<null>>(`/api/admin/notification?id=${id}`)
+}
+
+export const MarkNotificationAsRead = (notificationIds: string[]) => {
+    return axios.put<IBackendRes<null>>(`/api/admin/notifications/marking`, { notificationIds })
 }

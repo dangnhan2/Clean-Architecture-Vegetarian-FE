@@ -126,94 +126,96 @@ export default function Home() {
           </Card>
 
           {/* Box 2: Carousel Cards Container */}
-          <Card className="bg-white shadow-md p-6">
-            <Carousel
-              opts={{
-                align: "start",
-                loop: false,
-              }}
-              className="w-full"
-            >
-              <CarouselContent className="-ml-2 md:-ml-4">
-                {featuredItems?.map((item) => (
-                  <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
-                    <Card
-                      className="overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-                      onClick={() => router.push(`/product/${item.id}`)}
-                    >
-                      {/* Image Section */}
-                      <div className="relative aspect-[4/3]">
-                        <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
-                          {item.isOnSale && (
-                            <Badge className="bg-red-500 text-white hover:bg-red-500/90">
-                              Giảm giá
-                            </Badge>
-                          )}
-                        </div>
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        />            
-                      </div>
-
-                      {/* Content Section */}
-                      <CardHeader className="px-5 py-4">
-                        <CardTitle className="text-xl font-bold text-gray-900 mb-2">
-                          {item.name}
-                        </CardTitle>
-                        <CardDescription className="text-sm text-gray-600 mb-3 leading-relaxed line-clamp-2">
-                          {item.description}
-                        </CardDescription>
-                        <div className="flex items-center justify-between text-sm mb-2">
-                          <div className="flex items-center gap-1 text-amber-500">
-                            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                            <span className="font-semibold">
-                              {formatRating(item.averageRating)}
-                            </span>
-                            <span className="text-gray-500">
-                              ({item.ratingCount ?? 0})
-                            </span>
+          <Card className="bg-white shadow-md p-4 md:p-6">
+            <div className="relative">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2 md:-ml-4">
+                  {featuredItems?.map((item) => (
+                    <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3">
+                      <Card
+                        className="overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                        onClick={() => router.push(`/product/${item.id}`)}
+                      >
+                        {/* Image Section */}
+                        <div className="relative aspect-[4/3]">
+                          <div className="absolute top-2 left-2 md:top-3 md:left-3 flex flex-col gap-1 md:gap-2 z-10">
+                            {item.isOnSale && (
+                              <Badge className="bg-red-500 text-white hover:bg-red-500/90 text-xs md:text-sm">
+                                Giảm giá
+                              </Badge>
+                            )}
                           </div>
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 33vw"
+                          />            
                         </div>
-                        <p className="text-xs text-gray-500">
-                          {item.soldQuantity} đã bán
-                        </p>
-                      </CardHeader>
 
-                      {/* Footer with Price and Add Button */}
-                      <CardFooter className="px-5 pb-5 pt-0 flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <span className="text-xl font-bold text-gray-900">
-                            {formatCurrency(getEffectivePrice(item))}
-                          </span>
-                          {item.isOnSale && (
-                            <span className="text-sm text-gray-500 line-through">
-                              {formatCurrency(item.originalPrice)}
+                        {/* Content Section */}
+                        <CardHeader className="px-3 md:px-5 py-3 md:py-4">
+                          <CardTitle className="text-base md:text-xl font-bold text-gray-900 mb-1 md:mb-2 line-clamp-1">
+                            {item.name}
+                          </CardTitle>
+                          <CardDescription className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3 leading-relaxed line-clamp-2">
+                            {item.description}
+                          </CardDescription>
+                          <div className="flex items-center justify-between text-xs md:text-sm mb-1 md:mb-2">
+                            <div className="flex items-center gap-1 text-amber-500">
+                              <Star className="h-3 w-3 md:h-4 md:w-4 fill-amber-400 text-amber-400" />
+                              <span className="font-semibold">
+                                {formatRating(item.averageRating)}
+                              </span>
+                              <span className="text-gray-500">
+                                ({item.ratingCount ?? 0})
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            {item.soldQuantity} đã bán
+                          </p>
+                        </CardHeader>
+
+                        {/* Footer with Price and Add Button */}
+                        <CardFooter className="px-3 md:px-5 pb-3 md:pb-5 pt-0 flex items-center justify-between gap-2">
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-base md:text-xl font-bold text-gray-900 truncate">
+                              {formatCurrency(getEffectivePrice(item))}
                             </span>
-                          )}
-                        </div>
-                        <Button
-                          className="bg-black text-white hover:bg-black/90 rounded-md px-4 py-2 h-9 flex items-center gap-1.5"
-                          disabled={!item.isAvailable}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToCart(item);
-                          }}
-                        >
-                          <Plus className="h-4 w-4" />
-                          {item.isAvailable ? "Thêm" : "Hết hàng"}
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="hidden md:flex -left-12 bg-white hover:bg-gray-100 text-gray-900 border border-gray-200 shadow-lg" />
-              <CarouselNext className="hidden md:flex -right-12 bg-white hover:bg-gray-100 text-gray-900 border border-gray-200 shadow-lg" />
-            </Carousel>
+                            {item.isOnSale && (
+                              <span className="text-xs md:text-sm text-gray-500 line-through">
+                                {formatCurrency(item.originalPrice)}
+                              </span>
+                            )}
+                          </div>
+                          <Button
+                            className="bg-black text-white hover:bg-black/90 rounded-md px-2 md:px-4 py-1.5 md:py-2 h-8 md:h-9 flex items-center gap-1 md:gap-1.5 text-xs md:text-sm flex-shrink-0"
+                            disabled={!item.isAvailable}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart(item);
+                            }}
+                          >
+                            <Plus className="h-3 w-3 md:h-4 md:w-4" />
+                            <span className="hidden sm:inline">{item.isAvailable ? "Thêm" : "Hết hàng"}</span>
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="flex -left-4 md:-left-12 bg-white hover:bg-gray-100 text-gray-900 border border-gray-200 shadow-lg h-8 w-8 md:h-10 md:w-10" />
+                <CarouselNext className="flex -right-4 md:-right-12 bg-white hover:bg-gray-100 text-gray-900 border border-gray-200 shadow-lg h-8 w-8 md:h-10 md:w-10" />
+              </Carousel>
+            </div>
           </Card>
         </div>
       </div>

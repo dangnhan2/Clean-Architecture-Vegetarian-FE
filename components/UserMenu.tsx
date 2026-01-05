@@ -7,9 +7,10 @@ interface UserMenuProps {
   fullName?: string;
   avatarUrl?: string;
   onLogout: () => void;
+  isAdminPage?: boolean;
 }
 
-const UserMenu = ({ fullName, avatarUrl, onLogout }: UserMenuProps) => {
+const UserMenu = ({ fullName, avatarUrl, onLogout, isAdminPage = false }: UserMenuProps) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
@@ -58,11 +59,11 @@ const UserMenu = ({ fullName, avatarUrl, onLogout }: UserMenuProps) => {
             
             {user?.role === "Admin" && (
               <Link
-                href="/admin"
+                href={isAdminPage ? "/" : "/admin"}
                 className="block px-4 py-2 hover:bg-gray-50 border-t border-gray-200 mt-1 pt-2"
                 onClick={() => setOpen(false)}
               >
-                Admin Dashboard
+                {isAdminPage ? "Trang chủ" : "Admin Dashboard"}
               </Link>
             )}
             

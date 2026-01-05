@@ -118,33 +118,33 @@ export default function ProductPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="bg-gray-100 py-16 px-4 md:px-8 lg:px-40">
+      <div className="bg-gray-100 py-8 md:py-12 lg:py-16 px-4 md:px-8 lg:px-40">
         <div className="max-w-7xl mx-auto">
           {/* Fast Delivery Badge */}
-          <div className="mb-6">
-            <Badge className="bg-black text-white hover:bg-black/90 rounded-md px-3 py-1.5">
+          <div className="mb-4 md:mb-6">
+            <Badge className="bg-black text-white hover:bg-black/90 rounded-md px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm">
               Fast Delivery
             </Badge>
           </div>
 
           {/* Main Heading */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 max-w-2xl">
+          <h1 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-3 md:mb-4 max-w-2xl">
             Delicious Food, Delivered to Your Door
           </h1>
 
           {/* Description */}
-          <p className="text-gray-600 text-lg mb-8 max-w-2xl">
+          <p className="text-gray-600 text-sm md:text-base lg:text-lg mb-6 md:mb-8 max-w-2xl">
             Order from our selection of fresh, delicious meals prepared by top
             chefs. Fast delivery, amazing taste.
           </p>
 
           {/* Search Bar */}
           <div className="relative max-w-2xl">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 md:h-5 md:w-5" />
             <Input
               type="search"
               placeholder="Tìm kiếm..."
-              className="pl-12 h-12 rounded-lg bg-white text-base"
+              className="pl-10 md:pl-12 h-10 md:h-12 rounded-lg bg-white text-sm md:text-base"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -153,16 +153,16 @@ export default function ProductPage() {
       </div>
 
       {/* Main Content Section */}
-      <div className="px-4 md:px-8 lg:px-40 py-12">
+      <div className="px-4 md:px-8 lg:px-40 py-6 md:py-8 lg:py-12">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex flex-col lg:flex-row gap-4 md:gap-6 lg:gap-8">
             {/* Left Sidebar - Categories */}
             <aside className="w-full lg:w-80 flex-shrink-0 lg:sticky lg:top-24">
-              <Card className="p-6 shadow-md">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              <Card className="p-4 md:p-6 shadow-md">
+                <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
                   Danh mục món ăn
                 </h2>
-                <div className="space-y-2">
+                <div className="flex lg:flex-col gap-2 lg:space-y-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 -mx-4 md:-mx-6 px-4 md:px-6 lg:mx-0 lg:px-0">
                 <button                 
                       key="All"
                       onClick={() => {
@@ -171,10 +171,10 @@ export default function ProductPage() {
                           "All"
                         );
                       }}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors cursor-pointer ${
+                      className={`flex-shrink-0 lg:w-full flex items-center justify-between px-3 md:p-3 py-2 md:py-3 rounded-lg transition-colors cursor-pointer text-sm md:text-base ${
                         selectedCategory === "All"
                           ? "bg-black text-white"
-                          : "text-gray-700 hover:bg-gray-100"
+                          : "text-gray-700 hover:bg-gray-100 bg-gray-50"
                       }`}
                     >
                       <span className="font-medium">All</span>
@@ -188,10 +188,10 @@ export default function ProductPage() {
                           selectedCategory === category.name ? "All" : category.name
                         );
                       }}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                      className={`flex-shrink-0 lg:w-full flex items-center justify-between px-3 md:p-3 py-2 md:py-3 rounded-lg transition-colors text-sm md:text-base ${
                         selectedCategory === category.name
                           ? "bg-black text-white"
-                          : "text-gray-700 hover:bg-gray-100"
+                          : "text-gray-700 hover:bg-gray-100 bg-gray-50"
                       }`}
                     >
                       <span className="font-medium">{category.name}</span>
@@ -204,19 +204,19 @@ export default function ProductPage() {
             {/* Right Main Area - Food Listings */}
             <div className="flex-1 lg:flex lg:flex-col">
               {/* Sort Options (sticky) */}
-              <div className="flex items-center gap-4 mb-4 flex-wrap lg:sticky lg:top-24 lg:z-10 lg:bg-white lg:py-2">
-                <span className="text-gray-600 font-medium">Xắp xếp:</span>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 flex-wrap lg:sticky lg:top-24 lg:z-10 lg:bg-white lg:py-2">
+                <span className="text-gray-600 font-medium text-sm md:text-base">Xắp xếp:</span>
                 <div className="flex gap-2 flex-wrap">
                   {sortOptions.map((option) => (
                     <Button
                       key={option}
                       onClick={() => setSelectedSort(option)}
                       variant={selectedSort === option ? "default" : "outline"}
-                      className={
+                      className={`text-xs md:text-sm px-2 md:px-4 py-1.5 md:py-2 h-8 md:h-9 ${
                         selectedSort === option
                           ? "bg-black text-white hover:bg-black/90"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-0"
-                      }
+                      }`}
                     >
                       {option}
                     </Button>
@@ -227,7 +227,7 @@ export default function ProductPage() {
               {/* Scrollable Items area */}
               <div className="lg:max-h-[calc(100vh-160px)] lg:overflow-auto lg:pr-2">
                 {/* Food Item Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-2 gap-3 md:gap-4 lg:gap-6 mb-6 md:mb-8">
                   {items?.map((item) => (
                     <Card
                       key={item.id}
@@ -235,15 +235,15 @@ export default function ProductPage() {
                       onClick={() => router.push(`/product/${item.id}`)}
                     >
                       {/* Image Section */}
-                      <div className="relative aspect-[16/9]">
-                        <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
+                      <div className="relative aspect-[4/3] md:aspect-[16/9]">
+                        <div className="absolute top-2 left-2 md:top-3 md:left-3 flex flex-col gap-1 md:gap-2 z-10">
                           {item.isOnSale && (
-                            <Badge className="bg-red-500 text-white hover:bg-red-500/90">
+                            <Badge className="bg-red-500 text-white hover:bg-red-500/90 text-xs md:text-sm px-1.5 md:px-2 py-0.5 md:py-1">
                               Giảm giá
                             </Badge>
                           )}
                           {!item.isAvailable && (
-                            <Badge className="bg-gray-900/80 text-white hover:bg-gray-900/90">
+                            <Badge className="bg-gray-900/80 text-white hover:bg-gray-900/90 text-xs md:text-sm px-1.5 md:px-2 py-0.5 md:py-1">
                               Tạm hết
                             </Badge>
                           )}
@@ -253,56 +253,57 @@ export default function ProductPage() {
                           alt={item.name}
                           fill
                           className="object-cover"
-                          sizes="(max-width: 768px) 100vw, 50vw"
+                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 33vw"
                         />
                       </div>
 
                       {/* Content Section */}
-                      <CardHeader className="px-4 py-3 pb-2">
-                        <CardTitle className="text-lg font-bold text-gray-900 mb-1.5">
+                      <CardHeader className="px-2 md:px-4 py-2 md:py-3 pb-1 md:pb-2">
+                        <CardTitle className="text-sm md:text-base lg:text-lg font-bold text-gray-900 mb-1 md:mb-1.5 line-clamp-1 md:line-clamp-2">
                           {item.name}
                         </CardTitle>
-                        <CardDescription className="text-sm text-gray-600 mb-2 leading-relaxed">
+                        <CardDescription className="text-xs md:text-sm text-gray-600 mb-1 md:mb-2 leading-relaxed line-clamp-2 hidden md:block">
                           {item.description}
                         </CardDescription>
-                        <div className="flex items-center justify-between text-sm mt-2">
-                          <div className="flex items-center gap-1 text-amber-500">
-                            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                        <div className="flex items-center justify-between text-xs md:text-sm mt-1 md:mt-2">
+                          <div className="flex items-center gap-0.5 md:gap-1 text-amber-500">
+                            <Star className="h-3 w-3 md:h-4 md:w-4 fill-amber-400 text-amber-400" />
                             <span className="font-semibold">
                               {formatRating(item.averageRating)}
                             </span>
-                            <span className="text-gray-500">
+                            <span className="text-gray-500 text-xs">
                               ({item.ratingCount ?? 0})
                             </span>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500 mt-0.5 md:mt-1">
                           {item.soldQuantity} đã bán
                         </p>
                       </CardHeader>
 
                       {/* Footer with Price and Add Button */}
-                      <CardFooter className="px-4 pb-4 pt-0 flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <span className="text-xl font-bold text-gray-900">
+                      <CardFooter className="px-2 md:px-4 pb-2 md:pb-4 pt-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-0">
+                        <div className="flex flex-col w-full md:w-auto">
+                          <span className="text-base md:text-lg lg:text-xl font-bold text-gray-900">
                             {formatCurrency(getEffectivePrice(item))}
                           </span>
                           {item.isOnSale && (
-                            <span className="text-sm text-gray-500 line-through">
+                            <span className="text-xs md:text-sm text-gray-500 line-through">
                               {formatCurrency(item.originalPrice)}
                             </span>
                           )}
                         </div>
                         <Button 
-                          className="bg-black text-white hover:bg-black/90 rounded-md px-4 py-2 h-9 flex items-center gap-1.5 cursor-pointer" 
+                          className="bg-black text-white hover:bg-black/90 rounded-md px-2 md:px-4 py-1.5 md:py-2 h-8 md:h-9 flex items-center gap-1 md:gap-1.5 cursor-pointer text-xs md:text-sm w-full md:w-auto" 
                           disabled={!item.isAvailable}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleAddToCart(item);
                           }}
                         >
-                          <Plus className="h-4 w-4" />
-                          {item.isAvailable ? "Thêm vào giỏ hàng" : "Hết hàng"}
+                          <Plus className="h-3 w-3 md:h-4 md:w-4" />
+                          <span className="hidden sm:inline">{item.isAvailable ? "Thêm vào giỏ hàng" : "Hết hàng"}</span>
+                          <span className="sm:hidden">{item.isAvailable ? "Thêm" : "Hết"}</span>
                         </Button>
                       </CardFooter>
                     </Card>

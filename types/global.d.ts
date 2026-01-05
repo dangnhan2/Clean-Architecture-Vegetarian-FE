@@ -164,6 +164,16 @@ declare global {
         phoneNumber: string
         totalAmountInAMonth: number
     }
+
+    interface INotification {
+        id : string
+        title : string
+        message : string
+        type : string
+        data : string
+        isRead : boolean
+        createdAt : string
+    }
 }
 
 

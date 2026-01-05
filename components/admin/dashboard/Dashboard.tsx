@@ -29,7 +29,7 @@ const Dashboard = ({ data }: DashboardProps) => {
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
-                                    <p className="text-sm text-muted-foreground mb-1">Tổng Doanh Thu</p>
+                                    <p className="text-sm text-muted-foreground mb-1">Tổng Doanh Thu Hôm Nay</p>
                                     <p className="text-2xl font-bold">
                                         {formatCurrency(data.revenueToday)}
                                     </p>

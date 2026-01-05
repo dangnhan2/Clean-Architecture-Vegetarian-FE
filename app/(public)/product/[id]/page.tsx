@@ -113,30 +113,30 @@ const ProductDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-[#F7F7F8]">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16 py-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 xl:px-16 py-4 md:py-6 lg:py-8">
         {/* Back to Menu Link */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 md:mb-6 transition-colors text-sm md:text-base"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
           <span>Trở về menu</span>
         </Link>
 
         {/* Product Detail Layout - 2 Columns */}
         <Card>
-          <CardContent className="p-6 lg:p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          <CardContent className="p-4 md:p-6 lg:p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:gap-8 xl:gap-12">
               {/* Left Column - Product Image */}
               <div className="relative w-full aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
-                <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+                <div className="absolute top-2 left-2 md:top-4 md:left-4 flex flex-col gap-1 md:gap-2 z-10">
                   {product?.isOnSale && (
-                    <Badge className="bg-red-500 text-white hover:bg-red-500/90">
+                    <Badge className="bg-red-500 text-white hover:bg-red-500/90 text-xs md:text-sm px-2 md:px-3 py-1 md:py-1.5">
                       {product ? getDiscountLabel(product) : "Giảm giá"}
                     </Badge>
                   )}
                   {!product?.isAvailable && (
-                    <Badge className="bg-gray-900/80 text-white hover:bg-gray-900/90">
+                    <Badge className="bg-gray-900/80 text-white hover:bg-gray-900/90 text-xs md:text-sm px-2 md:px-3 py-1 md:py-1.5">
                       Tạm hết
                     </Badge>
                   )}
@@ -146,23 +146,23 @@ const ProductDetailPage = () => {
                   alt={product?.name || "Hình ảnh món ăn"}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   priority
                 />
               </div>
 
               {/* Right Column - Product Details */}
-              <div className="flex flex-col space-y-6">
+              <div className="flex flex-col space-y-4 md:space-y-6">
 
                 {/* Product Title */}
-                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
                   {product?.name}
                 </h1>
 
                 {/* Rating & Sales */}
-                <div className="flex flex-wrap items-center gap-4 text-sm">
+                <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm">
                   <div className="flex items-center gap-1 text-amber-500">
-                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <Star className="h-3 w-3 md:h-4 md:w-4 fill-amber-400 text-amber-400" />
                     <span className="font-semibold">
                       {formatRating(product?.averageRating)}
                     </span>
@@ -180,18 +180,18 @@ const ProductDetailPage = () => {
 
                 {/* Description Section */}
                 <div className="space-y-2">
-                  <h2 className="text-lg font-bold text-gray-900">Mô tả</h2>
-                  <p className="text-base text-gray-700 leading-relaxed">
+                  <h2 className="text-base md:text-lg font-bold text-gray-900">Mô tả</h2>
+                  <p className="text-sm md:text-base text-gray-700 leading-relaxed">
                     {product?.description || ""}
                   </p>
                 </div>
 
                 {/* Category Section */}
                 <Card>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 md:p-4">
                     <div className="space-y-2">
-                      <h2 className="text-lg font-bold text-gray-900">Danh mục</h2>
-                      <Badge variant="secondary" className="w-fit">
+                      <h2 className="text-base md:text-lg font-bold text-gray-900">Danh mục</h2>
+                      <Badge variant="secondary" className="w-fit text-xs md:text-sm">
                         {product?.category || ""}
                       </Badge>
                     </div>
@@ -203,17 +203,17 @@ const ProductDetailPage = () => {
 
                 {/* Price Section */}
                 <div className="space-y-2">
-                  <h2 className="text-lg font-bold text-gray-900">Giá</h2>
-                  <div className="flex items-end gap-3">
-                    <p className="text-3xl font-bold text-gray-900">
+                  <h2 className="text-base md:text-lg font-bold text-gray-900">Giá</h2>
+                  <div className="flex flex-wrap items-end gap-2 md:gap-3">
+                    <p className="text-2xl md:text-3xl font-bold text-gray-900">
                       {product ? formatCurrency(getEffectivePrice(product)) : "--"}
                     </p>
                     {product?.isOnSale && (
                       <>
-                        <span className="text-lg text-gray-500 line-through">
+                        <span className="text-base md:text-lg text-gray-500 line-through">
                           {formatCurrency(product?.originalPrice)}
                         </span>
-                        <Badge className="bg-red-500 text-white">
+                        <Badge className="bg-red-500 text-white text-xs md:text-sm">
                           {product && getDiscountPercent(product)
                             ? `-${getDiscountPercent(product)}%`
                             : "Giảm giá"}
@@ -226,11 +226,11 @@ const ProductDetailPage = () => {
                 {/* Add to Cart Button */}
                 <Button
                   onClick={handleAddToCart}
-                  className="w-full bg-gray-900 text-white hover:bg-gray-800 h-12 text-base font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full bg-gray-900 text-white hover:bg-gray-800 h-10 md:h-12 text-sm md:text-base font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                   disabled={!product?.isAvailable}
                   size="lg"
                 >
-                  <Plus className="h-5 w-5" />
+                  <Plus className="h-4 w-4 md:h-5 md:w-5" />
                   {product?.isAvailable ? "Thêm vào giỏ hàng" : "Hết hàng"}
                 </Button>
               </div>
@@ -240,7 +240,7 @@ const ProductDetailPage = () => {
 
         {/* Reviews Section */}
         {product?.id && (
-          <div className="mt-12 mb-12" id="reviews">
+          <div className="mt-6 md:mt-8 lg:mt-12 mb-6 md:mb-8 lg:mb-12" id="reviews">
             <ProductReviewsSection
               menuId={product.id}
             />
@@ -248,26 +248,26 @@ const ProductDetailPage = () => {
         )}
 
         {/* Divider */}
-        <div className="border-t border-gray-200 mb-8"></div>
+        <div className="border-t border-gray-200 mb-6 md:mb-8"></div>
 
         {/* You May Also Like Section */}
         <div>
-          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-8">
+          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 md:mb-6 lg:mb-8">
             Có thể bạn cũng thích
           </h2>
           
           {/* Loading State */}
           {isLoading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
               {[1, 2, 3, 4].map((i) => (
                 <Card key={i} className="overflow-hidden shadow-md">
                   <div className="relative aspect-[4/3] bg-gray-200 animate-pulse" />
-                  <CardHeader className="px-5 py-4">
-                    <div className="h-5 bg-gray-200 rounded animate-pulse mb-2" />
-                    <div className="h-4 bg-gray-200 rounded animate-pulse mb-3" />
+                  <CardHeader className="px-3 md:px-4 lg:px-5 py-3 md:py-4">
+                    <div className="h-4 md:h-5 bg-gray-200 rounded animate-pulse mb-2" />
+                    <div className="h-3 md:h-4 bg-gray-200 rounded animate-pulse mb-2 md:mb-3" />
                     <div className="flex items-center justify-between">
-                      <div className="h-3 bg-gray-200 rounded animate-pulse w-20" />
-                      <div className="h-5 bg-gray-200 rounded animate-pulse w-24" />
+                      <div className="h-3 bg-gray-200 rounded animate-pulse w-16 md:w-20" />
+                      <div className="h-4 md:h-5 bg-gray-200 rounded animate-pulse w-20 md:w-24" />
                     </div>
                   </CardHeader>
                 </Card>
@@ -277,7 +277,7 @@ const ProductDetailPage = () => {
 
           {/* Products List */}
           {!isLoading && recommendedProducts.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
               {recommendedProducts.map((item) => (
                 <Card
                   key={item.id}
@@ -286,14 +286,14 @@ const ProductDetailPage = () => {
                 >
                   {/* Image Section */}
                   <div className="relative aspect-[4/3]">
-                    <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
+                    <div className="absolute top-2 left-2 md:top-3 md:left-3 flex flex-col gap-1 md:gap-2 z-10">
                       {item.isOnSale && (
-                        <Badge className="bg-red-500 text-white hover:bg-red-500/90">
+                        <Badge className="bg-red-500 text-white hover:bg-red-500/90 text-xs md:text-sm px-1.5 md:px-2 py-0.5 md:py-1">
                           Giảm giá
                         </Badge>
                       )}
                       {!item.isAvailable && (
-                        <Badge className="bg-gray-900/80 text-white hover:bg-gray-900/90">
+                        <Badge className="bg-gray-900/80 text-white hover:bg-gray-900/90 text-xs md:text-sm px-1.5 md:px-2 py-0.5 md:py-1">
                           Tạm hết
                         </Badge>
                       )}
@@ -303,35 +303,35 @@ const ProductDetailPage = () => {
                       alt={item.name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                     />
                   </div>
 
                   {/* Content Section */}
-                  <CardHeader className="px-5 py-4">
-                    <CardTitle className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">
+                  <CardHeader className="px-3 md:px-4 lg:px-5 py-3 md:py-4">
+                    <CardTitle className="text-sm md:text-base lg:text-lg font-bold text-gray-900 mb-1 md:mb-2 line-clamp-1">
                       {item.name || ""}
                     </CardTitle>
-                    <CardDescription className="text-sm text-gray-600 mb-3 leading-relaxed line-clamp-2">
+                    <CardDescription className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3 leading-relaxed line-clamp-2 hidden md:block">
                       {item.description || ""}
                     </CardDescription>
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <div className="flex items-center gap-1 text-amber-500">
-                        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <div className="flex items-center justify-between text-xs md:text-sm mb-1">
+                      <div className="flex items-center gap-0.5 md:gap-1 text-amber-500">
+                        <Star className="h-3 w-3 md:h-4 md:w-4 fill-amber-400 text-amber-400" />
                         <span className="font-semibold">
                           {formatRating(item.averageRating)}
                         </span>
-                        <span className="text-gray-500">
+                        <span className="text-gray-500 text-xs">
                           ({item.ratingCount ?? 0})
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1 md:gap-0">
                       <p className="text-xs text-gray-500">
                         {item.soldQuantity || 0} đã bán
                       </p>
-                      <div className="flex flex-col items-end">
-                        <span className="text-lg font-bold text-gray-900">
+                      <div className="flex flex-col items-start md:items-end">
+                        <span className="text-base md:text-lg font-bold text-gray-900">
                           {formatCurrency(getEffectivePrice(item))}
                         </span>
                         {item.isOnSale && (
@@ -349,8 +349,8 @@ const ProductDetailPage = () => {
 
           {/* Empty State */}
           {!isLoading && recommendedProducts.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Không có sản phẩm tương tự</p>
+            <div className="text-center py-8 md:py-12">
+              <p className="text-sm md:text-base text-gray-500">Không có sản phẩm tương tự</p>
             </div>
           )}
         </div>

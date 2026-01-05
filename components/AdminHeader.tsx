@@ -13,9 +13,11 @@ import {
   Users, 
   Ticket, 
   Tag,
-  Grid2x2
+  Grid2x2,
+  Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import NotificationBell from "./NotificationBell";
 
 interface AdminHeaderProps {
   children?: React.ReactNode;
@@ -69,6 +71,11 @@ const AdminHeader = ({ children }: AdminHeaderProps) => {
       href: "/admin/categories",
       label: "Quản Lý Danh Mục",
       icon: Tag,
+    },
+    {
+      href: "/admin/notifications",
+      label: "Thông báo",
+      icon: Bell,
     },
   ];
 
@@ -127,7 +134,15 @@ const AdminHeader = ({ children }: AdminHeaderProps) => {
         <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-end px-6 flex-shrink-0">
           <div className="flex items-center gap-4">
           {isAuthen === true ? (
-            <UserMenu fullName={user?.userName} avatarUrl={user?.imageUrl} onLogout={handleLogout} />
+            <>
+              {user?.id && <NotificationBell userId={user.id} />}
+              <UserMenu 
+                fullName={user?.userName} 
+                avatarUrl={user?.imageUrl} 
+                onLogout={handleLogout}
+                isAdminPage={pathname.startsWith("/admin")}
+              />
+            </>
           ) : (
               <Link href="/auth/login">
                 <button className="px-4 py-2 font-semibold text-gray-700 hover:text-gray-900 transition-colors">

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Eye, Pencil, Trash2 } from "lucide-react";
-import { GetFoodItems, GetFoodItemById, GetCategories, DeleteFoodItem } from "@/services/api";
+import { GetFoodItems, GetFoodItemById, GetCategories, DeleteFoodItem, GetCategoriesByAdmin, GetFoodItemsByAdmin } from "@/services/api";
 import { useEffect, useState } from "react";
 import PaginationControl from "@/components/common/PaginationControl";
 import ProductDetail from "@/components/admin/products/ProductDetail";
@@ -41,7 +41,7 @@ const AdminProductsPage = () => {
             query += `&search=${searchText}`
         }
 
-        let res = await GetFoodItems(query);
+        let res = await GetFoodItemsByAdmin(query);
        
         // console.log(res);
         if (res.isSuccess && Number(res.statusCode) === 200) {
@@ -53,7 +53,7 @@ const AdminProductsPage = () => {
     }
 
     const fetchCategories = async () => {
-        let res = await GetCategories();
+        let res = await GetCategoriesByAdmin();
         if (res.isSuccess && Number(res.statusCode) === 200) {
             setCategories(res.data);
         }

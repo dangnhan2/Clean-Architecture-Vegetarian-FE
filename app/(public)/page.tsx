@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, ArrowRight, Star } from "lucide-react";
 import {
@@ -86,18 +85,6 @@ export default function Home() {
             Order from our selection of fresh, delicious meals prepared by top
             chefs. Fast delivery, amazing taste.
           </p>
-
-          {/* Search Bar */}
-          <div className="relative max-w-2xl">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            {/* <Input
-              type="search"
-              placeholder="Tìm kiếm..."
-              className="pl-12 h-12 rounded-lg bg-white text-base"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            /> */}
-          </div>
         </div>
       </div>
 

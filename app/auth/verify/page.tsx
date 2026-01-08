@@ -9,8 +9,8 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
-import { ArrowLeft, Mail } from "lucide-react"
-import { VerifyEmail } from "@/services/api"
+import { ArrowLeft, Mail, Loader2 } from "lucide-react"
+import { VerifyEmail, ResendEmail } from "@/services/api"
 import { toast } from "sonner"
 
 export default function VerifyEmailPage() {
@@ -20,6 +20,8 @@ export default function VerifyEmailPage() {
   const emailParam = searchParams.get("email") || ""
   const [code, setCode] = useState(["", "", "", "", "", ""])
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const [isResending, setIsResending] = useState(false)
+  const [countdown, setCountdown] = useState(0)
 
   const verifySchema = z.object({
     code: z.string().min(6, { message: "Mã xác nhận phải đủ 6 số" }).regex(/^\d{6}$/g, { message: "Chỉ nhập số" })
@@ -35,6 +37,16 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     inputRefs.current[0]?.focus()
   }, [])
+
+  // Countdown timer for resend button
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [countdown])
 
   const handleChange = (index: number, value: string) => {
     // Only allow digits
@@ -92,9 +104,32 @@ export default function VerifyEmailPage() {
     
   }
 
-  const handleResendCode = () => {
-    // Implement resend code logic here
-    console.log("Resend code")
+  const handleResendCode = async () => {
+    if (!emailParam) {
+      toast.error("Không tìm thấy địa chỉ email")
+      return
+    }
+
+    if (countdown > 0) {
+      return
+    }
+
+    try {
+      setIsResending(true)
+      const res = await ResendEmail(emailParam)
+      
+      if (res?.isSuccess && Number(res.statusCode) === 200) {
+        toast.success(res.message || "Đã gửi lại mã xác nhận thành công")
+        setCountdown(60) // Set countdown to 60 seconds
+      } else {
+        toast.error(res?.message || "Không thể gửi lại mã xác nhận")
+      }
+    } catch (error) {
+      console.error("Error resending email:", error)
+      toast.error("Có lỗi xảy ra khi gửi lại mã xác nhận")
+    } finally {
+      setIsResending(false)
+    }
   }
 
   return (
@@ -192,9 +227,23 @@ export default function VerifyEmailPage() {
             Không nhận được mã xác nhận?{" "}
             <button
               onClick={handleResendCode}
-              className="font-semibold text-gray-900 hover:underline"
+              disabled={isResending || countdown > 0}
+              className={`font-semibold ${
+                isResending || countdown > 0
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-gray-900 hover:underline"
+              } transition-colors`}
             >
-              Gửi lại mã xác nhận
+              {isResending ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin inline" />
+                  Đang gửi...
+                </span>
+              ) : countdown > 0 ? (
+                `Gửi lại sau ${countdown}s`
+              ) : (
+                "Gửi lại mã xác nhận"
+              )}
             </button>
           </p>
         </div>

@@ -148,7 +148,7 @@ const VoucherCreatingForm = ({ onSuccess, onCancel }: VoucherCreatingFormProps) 
                                                 className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
                                             >
                                                 <option value="percent">% phần trăm</option>
-                                                <option value="amount">Số tiền cố định</option>
+                                                <option value="fixed">Số tiền cố định</option>
                                             </select>
                                         </FormControl>
                                         <FormMessage />

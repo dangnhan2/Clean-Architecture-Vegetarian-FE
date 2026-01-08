@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import PaginationControl from "@/components/common/PaginationControl";
 import { GetRatingsByMenu } from "@/services/api";
 import ReviewCard from "./ReviewCard";
@@ -19,9 +20,11 @@ const ProductReviewsSection = ({ menuId }: ProductReviewsSectionProps) => {
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedStars, setSelectedStars] = useState<number | null>(null);
 
   useEffect(() => {
     setPage(1);
+    setSelectedStars(null);
   }, [menuId]);
 
   useEffect(() => {
@@ -34,7 +37,11 @@ const ProductReviewsSection = ({ menuId }: ProductReviewsSectionProps) => {
         setIsLoading(true);
         setError(null);
 
-        const query = `page=${page}&pageSize=${PAGE_SIZE}`;
+        let query = `page=${page}&pageSize=${PAGE_SIZE}`;
+        if (selectedStars !== null) {
+          query += `&stars=${selectedStars}`;
+        }
+        
         const res = await GetRatingsByMenu(menuId, query);
         
         if (!isSubscribed) {
@@ -70,7 +77,40 @@ const ProductReviewsSection = ({ menuId }: ProductReviewsSectionProps) => {
     return () => {
       isSubscribed = false;
     };
-  }, [menuId, page]);
+  }, [menuId, page, selectedStars]);
+
+  const handleStarFilter = (stars: number | null) => {
+    setSelectedStars(stars);
+    setPage(1);
+  };
+
+  const renderStarFilterButton = (stars: number | null, label: string) => {
+    const isActive = selectedStars === stars;
+    return (
+      <Button
+        variant={isActive ? "default" : "outline"}
+        size="sm"
+        onClick={() => handleStarFilter(stars)}
+        className="flex items-center gap-1"
+      >
+        {stars !== null && (
+          <div className="flex items-center gap-0.5">
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <Star
+                key={idx}
+                className={`h-3 w-3 ${
+                  idx < stars
+                    ? "fill-amber-400 text-amber-400"
+                    : "text-gray-300"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+        <span>{label}</span>
+      </Button>
+    );
+  };
 
   return (
     <section className="space-y-4 md:space-y-6">
@@ -81,6 +121,21 @@ const ProductReviewsSection = ({ menuId }: ProductReviewsSectionProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 md:space-y-6 p-4 md:p-6">
+          {/* Star Filter */}
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            <span className="text-sm md:text-base font-medium text-gray-700">
+              Lọc theo:
+            </span>
+            {renderStarFilterButton(null, "Tất cả")}
+            {renderStarFilterButton(5, "5 sao")}
+            {renderStarFilterButton(4, "4 sao")}
+            {renderStarFilterButton(3, "3 sao")}
+            {renderStarFilterButton(2, "2 sao")}
+            {renderStarFilterButton(1, "1 sao")}
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200"></div>
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-8 md:py-12 text-gray-500">
               <Loader2 className="h-5 w-5 md:h-6 md:w-6 animate-spin text-gray-400" />

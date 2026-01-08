@@ -12,6 +12,10 @@ export const VerifyEmail = (email : string, otp : string) => {
     return axios.post<IBackendRes<string>>(`/api/auth/email/verify`, {email, otp});
 }
 
+export const ResendEmail = (userEmail : string) => {
+    return axios.post<IBackendRes<string>>(`/api/auth/email/resend`, {userEmail});
+}
+
 export const RefreshToken = () => {
     return axios.post<IBackendRes<IAuthResponse>>(`/api/auth/refresh`);
 }
@@ -240,6 +244,14 @@ export const GetUsers = (query : string) => {
     return axios.get<IBackendRes<IModelPaginate<IUser>>>(`/api/admin/users?${query}`);
 }
 
+export const BanUser = (id : string) => {
+    return axios.put<IBackendRes<null>>(`/api/admin/user_banning/${id}`);
+}
+
+export const UnbanUser = (id : string) => {
+    return axios.put<IBackendRes<null>>(`/api/admin/user_unbanning/${id}`);
+}
+
 export const GetOrdersAdmin = (query : string) => {
     return axios.get<IBackendRes<IModelPaginate<IOrderHistory>>>(`/api/admin/orders?${query}`);
 }
@@ -262,4 +274,8 @@ export const DeleteNotification = (id : string) => {
 
 export const MarkNotificationAsRead = (notificationIds: string[]) => {
     return axios.put<IBackendRes<null>>(`/api/admin/notifications/marking`, { notificationIds })
+}
+
+export const SearchMenu = (keyword : string) => {
+    return axios.get<IBackendRes<ISearchMenuResponse[]>>(`/api/common/searching?Keyword=${keyword}`);
 }

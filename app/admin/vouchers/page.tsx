@@ -20,6 +20,8 @@ const AdminVouchersPage = () => {
     const [pageSize, setPageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [searchText, setSearchText] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
     const [selectedVoucher, setSelectedVoucher] = useState<IVoucher | null>(null);
     const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
     const [voucherToDelete, setVoucherToDelete] = useState<IVoucher | null>(null);
@@ -30,8 +32,42 @@ const AdminVouchersPage = () => {
     const [vouchers, setVouchers] = useState<IVoucher[] |null | undefined>();
     const [isDeleting, setIsDeleting] = useState(false);
 
+    // Format date from datetime-local (YYYY-MM-DDTHH:mm) to API format (MM/DD/YYYY HH:mm:ss)
+    const formatDateForAPI = (dateString: string): string => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return "";
+        
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`;
+    };
+
     const fetchVouchers = async () => {
         let query = `page=${page}&pageSize=${pageSize}`
+
+        if (searchText.trim()) {
+            query += `&search=${encodeURIComponent(searchText.trim())}`;
+        }
+
+        if (startDate) {
+            const formattedStartDate = formatDateForAPI(startDate);
+            if (formattedStartDate) {
+                query += `&startDate=${encodeURIComponent(formattedStartDate)}`;
+            }
+        }
+
+        if (endDate) {
+            const formattedEndDate = formatDateForAPI(endDate);
+            if (formattedEndDate) {
+                query += `&endDate=${encodeURIComponent(formattedEndDate)}`;
+            }
+        }
 
         let res = await GetVouchersAdmin(query);
         if (res.isSuccess && Number(res.statusCode) === 200) {
@@ -44,7 +80,7 @@ const AdminVouchersPage = () => {
 
     useEffect(() => {
         fetchVouchers();
-    }, [page, pageSize]);
+    }, [page, pageSize, searchText, startDate, endDate]);
 
     const handleViewVoucher = (voucher: IVoucher) => {
         setSelectedVoucher(voucher);
@@ -90,21 +126,61 @@ const AdminVouchersPage = () => {
                     <p className="text-gray-600">Thiết kế tương tự trang quản lý món ăn với đầy đủ thông tin voucher.</p>
                 </div>
 
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <div className="w-full md:w-80">
-                        <Input
-                            placeholder="Tìm kiếm voucher..."
-                            className="bg-white"
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                        />
+                <div className="flex flex-col gap-4">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div className="flex flex-col sm:flex-row gap-3 flex-1">
+                            <div className="w-full sm:w-80">
+                                <Input
+                                    placeholder="Tìm kiếm mã voucher..."
+                                    className="bg-white"
+                                    value={searchText}
+                                    onChange={(e) => setSearchText(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex gap-3 flex-1">
+                                <div className="flex-1">
+                                    <Input
+                                        type="datetime-local"
+                                        placeholder="Ngày bắt đầu"
+                                        className="bg-white"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <Input
+                                        type="datetime-local"
+                                        placeholder="Ngày kết thúc"
+                                        className="bg-white"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <Button
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg transition-shadow whitespace-nowrap"
+                            onClick={() => setIsCreateDialogOpen(true)}
+                        >
+                            + Thêm Voucher
+                        </Button>
                     </div>
-                    <Button
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg transition-shadow"
-                        onClick={() => setIsCreateDialogOpen(true)}
-                    >
-                        + Thêm Voucher
-                    </Button>
+                    {(searchText || startDate || endDate) && (
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    setSearchText("");
+                                    setStartDate("");
+                                    setEndDate("");
+                                }}
+                                className="text-xs"
+                            >
+                                Xóa bộ lọc
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 <Card className="shadow-sm border border-gray-100">

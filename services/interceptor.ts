@@ -35,9 +35,11 @@ instance.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
+    const isLoginRequest = originalRequest.url?.includes("/api/auth/login");
 
     // ⚠️ Nếu gặp 401 (token hết hạn) và chưa retry
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // ⚠️ KHÔNG refresh token nếu là login request (có thể là tài khoản bị khóa)
+    if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
       if (isRefreshing) {
         // Nếu đang refresh → chờ refresh xong rồi retry
         return new Promise(function (resolve, reject) {
@@ -83,9 +85,29 @@ instance.interceptors.response.use(
       }
     }
 
-    // Các lỗi khác
-    if (error.response?.data) return error.response.data;
-    return Promise.reject(error);
+    // Các lỗi khác - trả về response data nếu có
+    // Đảm bảo trả về đúng format IBackendRes
+    if (error.response?.data) {
+      // Nếu data đã có format đúng (isSuccess, statusCode, message)
+      if (error.response.data.isSuccess !== undefined) {
+        return error.response.data;
+      }
+      // Nếu chưa có format, wrap lại
+      return {
+        isSuccess: false,
+        statusCode: error.response.status || 500,
+        message: error.response.data.message || error.response.data || "Có lỗi xảy ra",
+        data: error.response.data.data || null,
+      };
+    }
+    
+    // Nếu không có response data, trả về error object với format chuẩn
+    return Promise.reject({
+      isSuccess: false,
+      statusCode: error.response?.status || 500,
+      message: error.message || "Có lỗi xảy ra",
+      data: null,
+    });
   }
 );
 

@@ -1,17 +1,27 @@
 "use client"
 import Link from "next/link";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Card } from "./ui/card";
 import { FaShoppingCart } from "react-icons/fa";
+import { Search } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/context/context";
 import UserMenu from "./UserMenu";
 import { useRouter } from "next/navigation";
-import { Logout } from "@/services/api";
+import { Logout, SearchMenu } from "@/services/api";
 import { toast } from "sonner";
+import { useState, useEffect, useRef } from "react";
 
 const PublicHeader = () => {
   const { user, isAuthen, setAccessToken, setIsAuthen, setUser, cart } = useAuth();
   const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<ISearchMenuResponse[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
     let res = await Logout();
@@ -26,6 +36,83 @@ const PublicHeader = () => {
     }
     
   };
+
+  const handleSearch = async (keyword: string) => {
+    if (!keyword.trim()) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const res = await SearchMenu(keyword.trim());
+      if (res.isSuccess && Number(res.statusCode) === 200) {
+        setSearchResults(res.data || []);
+        setShowDropdown(true);
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Debounce search API call
+    searchTimeoutRef.current = setTimeout(() => {
+      handleSearch(value);
+    }, 300);
+  };
+
+  const handleItemClick = (menuId: string) => {
+    router.push(`/product/${menuId}`);
+    setSearchTerm("");
+    setSearchResults([]);
+    setShowDropdown(false);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      router.push(`/product?name=${encodeURIComponent(searchTerm.trim())}`);
+      setSearchTerm("");
+      setSearchResults([]);
+      setShowDropdown(false);
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <header className="w-full h-16 flex items-center px-40 bg-white shadow-sm justify-between">
@@ -51,6 +138,68 @@ const PublicHeader = () => {
             <span className="font-normal hover:text-primary transition-colors">Liên hệ</span>
           </Link>
         </nav>
+      </div>
+      <div className="flex-1 max-w-md mx-8 relative" ref={searchContainerRef}>
+        <form onSubmit={handleFormSubmit} className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
+          <Input
+            type="search"
+            placeholder="Tìm kiếm món ăn..."
+            className="pl-10 h-9 rounded-lg bg-gray-50 border-gray-200 focus:bg-white"
+            value={searchTerm}
+            onChange={handleInputChange}
+            onFocus={() => {
+              if (searchResults.length > 0) {
+                setShowDropdown(true);
+              }
+            }}
+          />
+        </form>
+        
+        {/* Search Results Dropdown */}
+        {showDropdown && (
+          <Card className="absolute top-full left-0 right-0 mt-2 max-h-96 overflow-auto z-50 shadow-lg border-gray-200">
+            <div className="p-2">
+              {isSearching ? (
+                <div className="p-4 text-center text-sm text-gray-500">
+                  Đang tìm kiếm...
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div className="space-y-1">
+                  {searchResults.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleItemClick(item.id)}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                    >
+                      <div className="relative w-12 h-12 flex-shrink-0 overflow-hidden rounded-md border">
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                          sizes="48px"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {item.name}
+                        </p>
+                        <p className="text-xs font-bold text-gray-600">
+                          {item.price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : searchTerm.trim() ? (
+                <div className="p-4 text-center text-sm text-gray-500">
+                  Không tìm thấy kết quả
+                </div>
+              ) : null}
+            </div>
+          </Card>
+        )}
       </div>
       <div className="flex items-center gap-4">
         {/* Cart with hover preview */}

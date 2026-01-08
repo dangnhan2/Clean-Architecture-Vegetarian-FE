@@ -33,10 +33,7 @@ const Dashboard = ({ data }: DashboardProps) => {
                                     <p className="text-2xl font-bold">
                                         {formatCurrency(data.revenueToday)}
                                     </p>
-                                    <div className="flex items-center gap-1 mt-2">
-                                        <TrendingUp className="h-4 w-4 text-green-600" />
-                                        <span className="text-sm text-green-600 font-medium">+12.5%</span>
-                                    </div>
+
                                 </div>
                                 <div className="h-12 w-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
                                     <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
@@ -125,10 +122,7 @@ const Dashboard = ({ data }: DashboardProps) => {
                                     <p className="text-2xl font-bold">
                                         {data.totalCustomers.toLocaleString("vi-VN")}
                                     </p>
-                                    <div className="flex items-center gap-1 mt-2">
-                                        <TrendingUp className="h-4 w-4 text-green-600" />
-                                        <span className="text-sm text-green-600 font-medium">+8.2%</span>
-                                    </div>
+
                                 </div>
                                 <div className="h-12 w-12 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center flex-shrink-0">
                                     <Users className="h-6 w-6 text-orange-600 dark:text-orange-400" />

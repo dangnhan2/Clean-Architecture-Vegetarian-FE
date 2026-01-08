@@ -26,6 +26,9 @@ declare global {
         id: string | undefined
         imageUrl: string
         phoneNumber: string | null
+        isActive : boolean
+        totalAmountInMonth : number
+        totalAmountInYear : number
         role: string | null
     }
 
@@ -113,6 +116,7 @@ declare global {
         fullName : string
         phoneNumber : string
         address : string
+        note : string
         orderStatus : number
         totalAmount : number
         transactionCode : number
@@ -173,6 +177,13 @@ declare global {
         data : string
         isRead : boolean
         createdAt : string
+    }
+
+    interface ISearchMenuResponse {
+        id : string
+        name : string
+        price: number
+        imageUrl: string
     }
 }
 

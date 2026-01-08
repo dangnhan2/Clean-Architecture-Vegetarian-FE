@@ -4,6 +4,7 @@ import { z } from "zod"
 import Link from "next/link"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { useState } from "react"
  
 import { Button } from "@/components/ui/button"
 import {
@@ -15,10 +16,19 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Login } from "@/services/api"
+import { Login, ResendEmail } from "@/services/api"
 import { toast } from "sonner"
 import { useAuth } from "@/context/context"
 import { useRouter } from "next/navigation"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Loader2, Mail } from "lucide-react"
  
 const loginSchema = z.object({
   email: z.string().email({
@@ -34,6 +44,11 @@ type LoginFormValues = z.infer<typeof loginSchema>
 export default function LoginPage() {
   const {setUser, setIsAuthen} = useAuth();
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [pendingEmail, setPendingEmail] = useState<string>("")
+  const [isResending, setIsResending] = useState(false)
+  
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -43,21 +58,90 @@ export default function LoginPage() {
   })
 
   const onSubmit = async (values: LoginFormValues) => {
-    let res = await Login(values.email, values.password)
-    if (res?.isSuccess && Number(res.statusCode) === 200) {
-      const token = res.data?.accessToken
-      if (token) {
-        localStorage.setItem("access_token", token)
-        setUser(res.data?.data)
-        setIsAuthen(true)
-      }
+    setIsLoading(true)
+    
+    try {
+      let res = await Login(values.email, values.password)
+      console.log("Login response:", res)
       
-      toast.success(res.message)
-      router.push("/")
-    } else {
-      toast.error(res.message)
+      if (res?.isSuccess && Number(res.statusCode) === 200) {
+        const token = res.data?.accessToken
+        if (token) {
+          localStorage.setItem("access_token", token)
+          setUser(res.data?.data)
+          setIsAuthen(true)
+        }
+        
+        toast.success(res.message || "Đăng nhập thành công")
+        router.push("/")
+      } else {
+        // Kiểm tra nếu là lỗi tài khoản bị khóa (401)
+        const statusCode = Number(res?.statusCode) || 0
+        const message = res?.message || "Đăng nhập thất bại. Vui lòng thử lại."
+        
+        console.log("Login failed - Status:", statusCode, "Message:", message)
+        
+        // Kiểm tra nếu là lỗi email chưa xác nhận
+        if (message.includes("Tài khoản của bạn chưa được xác nhận")) {
+          setPendingEmail(values.email)
+          setShowConfirmDialog(true)
+        } else if (statusCode === 401) {
+          toast.error(message, {
+            duration: 5000,
+          })
+        } else {
+          toast.error(message)
+        }
+      }
+    } catch (error: any) {
+      console.error("Login error:", error)
+      const errorMsg = error?.message || error?.response?.data?.message || "Có lỗi xảy ra khi đăng nhập"
+      
+      // Kiểm tra nếu error response có message về email chưa xác nhận
+      if (errorMsg.includes("Tài khoản của bạn chưa được xác nhận")) {
+        setPendingEmail(values.email)
+        setShowConfirmDialog(true)
+      } else {
+        toast.error(errorMsg)
+      }
+    } finally {
+      console.log("Setting isLoading to false")
+      setIsLoading(false)
     }
-    // Handle login logic here
+  }
+
+  const handleConfirmResendEmail = async () => {
+    if (!pendingEmail) return
+
+    try {
+      setIsResending(true)
+      const res = await ResendEmail(pendingEmail)
+      
+      if (res?.isSuccess && Number(res.statusCode) === 200) {
+        toast.success(res.message || "Đã gửi lại mã xác nhận đến email của bạn")
+        setShowConfirmDialog(false)
+        router.push(`/auth/verify?flow=register&email=${encodeURIComponent(pendingEmail)}`)
+      } else {
+        toast.error(res?.message || "Không thể gửi lại mã xác nhận")
+      }
+    } catch (error: any) {
+      console.error("Error resending email:", error)
+      toast.error("Có lỗi xảy ra khi gửi lại mã xác nhận. Vui lòng thử lại sau.")
+    } finally {
+      setIsResending(false)
+    }
+  }
+
+  const handleCancelDialog = () => {
+    setShowConfirmDialog(false)
+    setPendingEmail("")
+  }
+
+  const handleDialogChange = (open: boolean) => {
+    setShowConfirmDialog(open)
+    if (!open) {
+      setPendingEmail("")
+    }
   }
 
   return (
@@ -72,6 +156,7 @@ export default function LoginPage() {
             Đăng nhập để tiếp tục
           </p>
         </div>
+
 
         {/* Form */}
         <Form {...form}>
@@ -120,8 +205,9 @@ export default function LoginPage() {
             <Button 
               type="submit" 
               className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+              disabled={isLoading}
             >
-              Đăng nhập
+              {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
             </Button>
           </form>
         </Form>
@@ -150,6 +236,49 @@ export default function LoginPage() {
           </Link>
         </div>
       </div>
+
+      {/* Confirm Resend Email Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={handleDialogChange}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                <Mail className="h-8 w-8 text-blue-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-xl font-bold text-gray-900">
+              Xác nhận gửi lại email
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-600 pt-2">
+              Tài khoản của bạn chưa được xác nhận. Bạn có muốn chúng tôi gửi lại mã xác nhận đến email <span className="font-semibold text-gray-900">{pendingEmail}</span> không?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0 mt-4">
+            <Button
+              variant="outline"
+              onClick={handleCancelDialog}
+              disabled={isResending}
+              className="w-full sm:w-auto"
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleConfirmResendEmail}
+              disabled={isResending}
+              className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white"
+            >
+              {isResending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang gửi...
+                </>
+              ) : (
+                "Xác nhận"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -11,11 +11,12 @@ import { AddToCart, GetCategories, GetFoodItems } from "@/services/api";
 import PaginationControl from "@/components/common/PaginationControl";
 import { useAuth } from "@/context/context";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ProductPage() {
   const {user, fetchCart} = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedSort, setSelectedSort] = useState("Mặc định");
   const [categories, setCategories] = useState<ICategory[] | null | undefined>();
@@ -23,7 +24,6 @@ export default function ProductPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const formatCurrency = (value: number) =>
     value.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
@@ -45,11 +45,7 @@ export default function ProductPage() {
     let query = `page=${page}&pageSize=${pageSize}`
 
     if (selectedCategory && selectedCategory !== "All"){
-      query += `&category=${selectedCategory}`
-    }
-
-    if (searchTerm){
-      query += `&name=${encodeURIComponent(searchTerm)}`
+      query += `&search=${selectedCategory}`
     }
 
     // Map sort options to API sort parameters
@@ -102,7 +98,7 @@ export default function ProductPage() {
 
   useEffect(() => {
     fetchFoodItems();
-  }, [page, pageSize, searchTerm, selectedCategory, selectedSort]);
+  }, [page, pageSize,selectedCategory, selectedSort]);
 
   useEffect(() => {
     fetchCategories();
@@ -138,17 +134,7 @@ export default function ProductPage() {
             chefs. Fast delivery, amazing taste.
           </p>
 
-          {/* Search Bar */}
-          <div className="relative max-w-2xl">
-            <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 md:h-5 md:w-5" />
-            <Input
-              type="search"
-              placeholder="Tìm kiếm..."
-              className="pl-10 md:pl-12 h-10 md:h-12 rounded-lg bg-white text-sm md:text-base"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+        
         </div>
       </div>
 

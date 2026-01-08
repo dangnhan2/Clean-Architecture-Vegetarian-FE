@@ -84,13 +84,14 @@ const AdminOrdersPage = () => {
                     </CardHeader>
 
                     <CardContent className="p-0 overflow-x-auto">
-                        <div className="min-w-[1200px]">
-                            <div className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1fr_1.2fr_1fr_0.8fr] gap-3 px-4 py-3 text-sm font-semibold text-gray-500 border-b bg-white">
+                        <div className="min-w-[1300px]">
+                            <div className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1.2fr_1.2fr_1fr_1fr_0.8fr] gap-3 px-4 py-3 text-sm font-semibold text-gray-500 border-b bg-white">
                                 <span className="text-left">Mã đơn</span>
                                 <span className="text-left">Ngày đặt</span>
                                 <span className="text-left">Họ tên</span>
                                 <span className="text-left">Số điện thoại</span>
                                 <span className="text-left">Địa chỉ</span>
+                                <span className="text-left">Ghi chú</span>
                                 <span className="text-center">Trạng thái</span>
                                 <span className="text-right">Tổng tiền</span>
                                 <span className="text-right">Hành động</span>
@@ -100,13 +101,16 @@ const AdminOrdersPage = () => {
                                 {orders?.map((order) => (
                                     <div
                                         key={order.id}
-                                        className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1fr_1.2fr_1fr_0.8fr] gap-3 px-4 py-4 items-center bg-white hover:bg-gray-50 transition-colors text-sm"
+                                        className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1.2fr_1.2fr_1fr_1fr_0.8fr] gap-3 px-4 py-4 items-center bg-white hover:bg-gray-50 transition-colors text-sm"
                                     >
                                         <div className="text-gray-900 font-semibold">#{order.id.slice(0, 8)}</div>
                                         <div className="text-gray-700">{order.orderDate}</div>
                                         <div className="font-semibold text-gray-900">{order.fullName}</div>
                                         <div className="text-gray-700">{order.phoneNumber}</div>
                                         <div className="text-gray-700 line-clamp-2">{order.address}</div>
+                                        <div className="text-gray-700 line-clamp-2">
+                                            {order.note || "--"}
+                                        </div>
                                         <div className="flex items-center justify-center">
                                             {getOrderStatusBadge(order.orderStatus)}
                                         </div>

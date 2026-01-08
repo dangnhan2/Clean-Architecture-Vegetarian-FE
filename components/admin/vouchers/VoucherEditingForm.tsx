@@ -56,10 +56,42 @@ interface VoucherEditingFormProps {
 }
 
 const formatDateForInput = (value: string) => {
-    const date = new Date(value);
-    if (isNaN(date.getTime())) return value;
-    const iso = date.toISOString();
-    return iso.slice(0, 16);
+    if (!value) return "";
+    
+    let date: Date;
+    
+    // Try to parse different date formats
+    // Format 1: "MM/DD/YYYY HH:mm:ss" (from API)
+    const mmddyyyyPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})$/;
+    const match = value.match(mmddyyyyPattern);
+    
+    if (match) {
+        const [, month, day, year, hours, minutes] = match;
+        date = new Date(
+            parseInt(year),
+            parseInt(month) - 1, // Month is 0-indexed
+            parseInt(day),
+            parseInt(hours),
+            parseInt(minutes)
+        );
+    } else {
+        // Try standard Date parsing (ISO string, etc.)
+        date = new Date(value);
+    }
+    
+    if (isNaN(date.getTime())) {
+        console.warn("Invalid date format:", value);
+        return "";
+    }
+    
+    // Format to datetime-local format: YYYY-MM-DDTHH:mm
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
 const VoucherEditingForm = ({ voucher, onSuccess, onCancel }: VoucherEditingFormProps) => {

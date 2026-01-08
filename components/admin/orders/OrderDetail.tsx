@@ -49,6 +49,12 @@ const OrderDetail = ({ order }: OrderDetailProps) => {
                     <p className="text-sm text-gray-500 mb-1">Địa chỉ</p>
                     <p className="font-semibold text-gray-900">{order.address}</p>
                 </div>
+                <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 md:col-span-2">
+                    <p className="text-sm text-gray-500 mb-1">Ghi chú</p>
+                    <p className="font-semibold text-gray-900 whitespace-pre-line">
+                        {order.note || "Không có ghi chú"}
+                    </p>
+                </div>
                 <div className="p-4 rounded-lg bg-gray-50 border border-gray-100">
                     <p className="text-sm text-gray-500 mb-1">Mã giao dịch</p>
                     <p className="font-semibold text-gray-900">{order.transactionCode || "--"}</p>

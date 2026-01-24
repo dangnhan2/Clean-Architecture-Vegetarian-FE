@@ -2,7 +2,7 @@
 
 import { GetCartByUser, RefreshToken } from "@/services/api";
 import { useState, createContext, useContext, useEffect } from "react";
-import axios from "@services/interceptor";
+import {refreshClient} from "@services/interceptor";
 
 interface AuthContextType {
     user: IUser | undefined;
@@ -50,16 +50,21 @@ export const AuthProvider = ({children} : {children: React.ReactNode}) => {
        try{
         let res = await RefreshToken();
         console.log(res);
-        if (res){
+        if (res && res.isSuccess){
             setUser(res.data?.data);
-            const access_token = res.data?.accessToken;
-            if (access_token)
-            localStorage.setItem("access_token", access_token);
+            const access_token = res.data?.accessToken
+            if (access_token) {
+              localStorage.setItem("access_token", access_token);
+              setAccessToken(access_token);
+            }
             setIsAuthen(true);
         }
        }catch(err){
+        console.error("Refresh token failed:", err);
         setUser(undefined);
+        setAccessToken(undefined);
         localStorage.removeItem("access_token");
+        setIsAuthen(false);
        }
     }
 
@@ -70,10 +75,10 @@ export const AuthProvider = ({children} : {children: React.ReactNode}) => {
 
     useEffect(() => {
         if (accessToken) {
-          axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+          refreshClient.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
           localStorage.setItem("access_token", accessToken);
         } else {
-          delete axios.defaults.headers.common["Authorization"];
+          delete refreshClient.defaults.headers.common["Authorization"];
           localStorage.removeItem("access_token");
         }
       }, [accessToken]);

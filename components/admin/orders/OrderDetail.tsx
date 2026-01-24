@@ -15,6 +15,13 @@ const getOrderStatusBadge = (status: number) => {
             </Badge>
         );
     }
+    if (status === 2) {
+        return (
+            <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100">
+                Hủy đơn
+            </Badge>
+        );
+    }
     return (
         <Badge variant="secondary" className="bg-gray-100 text-gray-600 hover:bg-gray-100">
             Đang xử lý
@@ -59,6 +66,17 @@ const OrderDetail = ({ order }: OrderDetailProps) => {
                     <p className="text-sm text-gray-500 mb-1">Mã giao dịch</p>
                     <p className="font-semibold text-gray-900">{order.transactionCode || "--"}</p>
                 </div>
+                <div className="p-4 rounded-lg bg-gray-50 border border-gray-100">
+                    <p className="text-sm text-gray-500 mb-1">Phương thức thanh toán</p>
+                    <div className="mt-1">
+                        <Badge variant="outline">
+                            {order.paymentMethod === "QR" ? "Thanh toán QR" : 
+                             order.paymentMethod === "COD" ? "Thanh toán khi nhận hàng" :
+                             order.paymentMethod === "PayOS" ? "PayOS" :
+                             order.paymentMethod || "--"}
+                        </Badge>
+                    </div>
+                </div>
                 <div className="p-4 rounded-lg bg-purple-50 border border-purple-100">
                     <p className="text-sm text-purple-600 mb-1">Tổng tiền</p>
                     <p className="font-bold text-lg text-purple-700">
@@ -88,12 +106,12 @@ const OrderDetail = ({ order }: OrderDetailProps) => {
                             <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-gray-900">{item.menuName}</p>
                                 <p className="text-sm text-gray-600">
-                                    Số lượng: {item.quantity} × {item.subPrice.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                                    Số lượng: {item.quantity} × {item.unitPrice.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
                                 </p>
                             </div>
                             <div className="text-right">
                                 <p className="font-semibold text-purple-700">
-                                    {(item.quantity * item.subPrice).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                                    {(item.quantity * item.unitPrice).toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
                                 </p>
                             </div>
                         </div>

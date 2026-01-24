@@ -41,13 +41,13 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
         <div className="space-y-6">
             {/* Main Product Card */}
             <Card className="shadow-lg border border-gray-100 overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200">
-                    <div className="flex items-start justify-between">
-                        <CardTitle className="text-2xl font-bold text-gray-900">{product.name}</CardTitle>
+                <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200 p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                        <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">{product.name}</CardTitle>
                         <div className="flex gap-2 flex-wrap">
                             <Badge
                                 variant={product.isAvailable ? "default" : "secondary"}
-                                className={`${product.isAvailable
+                                className={`text-xs sm:text-sm ${product.isAvailable
                                         ? "bg-green-100 text-green-700 hover:bg-green-100 border-green-200"
                                         : "bg-gray-100 text-gray-600 hover:bg-gray-100 border-gray-200"
                                     }`}
@@ -65,7 +65,7 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
                                 )}
                             </Badge>
                             {product.isOnSale && (
-                                <Badge className="bg-pink-100 text-pink-700 hover:bg-pink-100 border-pink-200">
+                                <Badge className="bg-pink-100 text-pink-700 hover:bg-pink-100 border-pink-200 text-xs sm:text-sm">
                                     <Percent className="h-3 w-3 mr-1" />
                                     Đang khuyến mãi
                                 </Badge>
@@ -74,8 +74,8 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
                     </div>
                 </CardHeader>
 
-                <CardContent className="p-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <CardContent className="p-4 sm:p-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                         {/* Left Column - Image */}
                         <div className="space-y-4">
                             <div className="relative aspect-square w-full overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50">
@@ -91,7 +91,7 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
                         </div>
 
                         {/* Right Column - Details */}
-                        <div className="space-y-6">
+                        <div className="space-y-4 sm:space-y-6">
                             {/* Basic Info */}
                             <div className="space-y-4">
                                 <div>
@@ -200,11 +200,11 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
 
             {/* Additional Info Card */}
             <Card className="shadow-sm border border-gray-100">
-                <CardHeader>
-                    <CardTitle className="text-lg text-gray-800">Thông tin chi tiết</CardTitle>
+                <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg text-gray-800">Thông tin chi tiết</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <CardContent className="p-4 sm:p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                         <div className="space-y-4">
                             <div>
                                 <span className="text-sm font-semibold text-gray-500">ID sản phẩm:</span>

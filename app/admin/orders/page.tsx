@@ -20,6 +20,13 @@ const getOrderStatusBadge = (status: number) => {
             </Badge>
         );
     }
+    if (status === 2) {
+        return (
+            <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100">
+                Hủy đơn
+            </Badge>
+        );
+    }
     return (
         <Badge variant="secondary" className="bg-gray-100 text-gray-600 hover:bg-gray-100">
             Đang xử lý
@@ -84,8 +91,8 @@ const AdminOrdersPage = () => {
                     </CardHeader>
 
                     <CardContent className="p-0 overflow-x-auto">
-                        <div className="min-w-[1300px]">
-                            <div className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1.2fr_1.2fr_1fr_1fr_0.8fr] gap-3 px-4 py-3 text-sm font-semibold text-gray-500 border-b bg-white">
+                        <div className="min-w-[1500px]">
+                            <div className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1.2fr_1.2fr_1fr_1fr_1fr_0.8fr] gap-3 px-4 py-3 text-sm font-semibold text-gray-500 border-b bg-white">
                                 <span className="text-left">Mã đơn</span>
                                 <span className="text-left">Ngày đặt</span>
                                 <span className="text-left">Họ tên</span>
@@ -93,6 +100,7 @@ const AdminOrdersPage = () => {
                                 <span className="text-left">Địa chỉ</span>
                                 <span className="text-left">Ghi chú</span>
                                 <span className="text-center">Trạng thái</span>
+                                <span className="text-center">Phương thức thanh toán</span>
                                 <span className="text-right">Tổng tiền</span>
                                 <span className="text-right">Hành động</span>
                             </div>
@@ -101,7 +109,7 @@ const AdminOrdersPage = () => {
                                 {orders?.map((order) => (
                                     <div
                                         key={order.id}
-                                        className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1.2fr_1.2fr_1fr_1fr_0.8fr] gap-3 px-4 py-4 items-center bg-white hover:bg-gray-50 transition-colors text-sm"
+                                        className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1.2fr_1.2fr_1fr_1fr_1fr_0.8fr] gap-3 px-4 py-4 items-center bg-white hover:bg-gray-50 transition-colors text-sm"
                                     >
                                         <div className="text-gray-900 font-semibold">#{order.id.slice(0, 8)}</div>
                                         <div className="text-gray-700">{order.orderDate}</div>
@@ -113,6 +121,14 @@ const AdminOrdersPage = () => {
                                         </div>
                                         <div className="flex items-center justify-center">
                                             {getOrderStatusBadge(order.orderStatus)}
+                                        </div>
+                                        <div className="text-center">
+                                            <Badge variant="outline" className="text-xs">
+                                                {order.paymentMethod === "QR" ? "Thanh toán QR" : 
+                                                 order.paymentMethod === "COD" ? "Thanh toán khi nhận hàng" :
+                                                 order.paymentMethod === "PayOS" ? "PayOS" :
+                                                 order.paymentMethod || "--"}
+                                            </Badge>
                                         </div>
                                         <div className="text-purple-700 font-semibold text-right tabular-nums">
                                             {order.totalAmount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}

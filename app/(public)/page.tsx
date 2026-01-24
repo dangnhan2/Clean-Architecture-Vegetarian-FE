@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, ArrowRight, Star } from "lucide-react";
+import { Plus, ArrowRight, Star } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -114,6 +114,9 @@ export default function Home() {
 
           {/* Box 2: Carousel Cards Container */}
           <Card className="bg-white shadow-md p-4 md:p-6">
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
+              Món ăn bán chạy nhất
+            </h3>
             <div className="relative">
               <Carousel
                 opts={{

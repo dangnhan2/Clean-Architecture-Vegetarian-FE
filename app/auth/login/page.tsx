@@ -68,12 +68,20 @@ export default function LoginPage() {
         const token = res.data?.accessToken
         if (token) {
           localStorage.setItem("access_token", token)
+          // Set cookie for middleware access
+          const expires = new Date();
+          expires.setTime(expires.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+          document.cookie = `access_token=${token};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+          
           setUser(res.data?.data)
           setIsAuthen(true)
         }
         
         toast.success(res.message || "Đăng nhập thành công")
-        router.push("/")
+        
+        // Redirect to original page if exists
+        const redirectTo = new URLSearchParams(window.location.search).get("redirect") || "/";
+        router.push(redirectTo)
       } else {
         // Kiểm tra nếu là lỗi tài khoản bị khóa (401)
         const statusCode = Number(res?.statusCode) || 0

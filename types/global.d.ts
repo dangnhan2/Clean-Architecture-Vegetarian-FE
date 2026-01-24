@@ -98,10 +98,8 @@ declare global {
     }
 
     interface IOrderInfo {
-        orderCode : string
         checkoutUrl : string
-        qrCode : string
-        amount : number
+        orderCode : number
     }
 
     interface IVoucherValidationInfo{
@@ -120,6 +118,7 @@ declare global {
         orderStatus : number
         totalAmount : number
         transactionCode : number
+        paymentMethod : string
         menus : IItemHistory[] 
     }
 
@@ -129,6 +128,7 @@ declare global {
         menuName : string
         menuImage : string
         quantity : number
+        unitPrice : number
         subPrice : number
         isRated : boolean
     }
@@ -136,9 +136,10 @@ declare global {
     interface IRating {
         id : string
         menuId : string
-        fullName : string
+        userName : string
         stars : number
         comment : string
+        ratingAt : string
         images : string[]
     }
 

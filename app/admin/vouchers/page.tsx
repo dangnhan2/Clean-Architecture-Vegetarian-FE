@@ -126,32 +126,32 @@ const AdminVouchersPage = () => {
                     <p className="text-gray-600">Thiết kế tương tự trang quản lý món ăn với đầy đủ thông tin voucher.</p>
                 </div>
 
-                <div className="flex flex-col gap-4">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                        <div className="flex flex-col sm:flex-row gap-3 flex-1">
-                            <div className="w-full sm:w-80">
+                <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3">
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <div className="flex-1 min-w-0">
                                 <Input
                                     placeholder="Tìm kiếm mã voucher..."
-                                    className="bg-white"
+                                    className="bg-white w-full"
                                     value={searchText}
                                     onChange={(e) => setSearchText(e.target.value)}
                                 />
                             </div>
-                            <div className="flex gap-3 flex-1">
-                                <div className="flex-1">
+                            <div className="flex flex-col xs:flex-row gap-3 flex-1">
+                                <div className="flex-1 min-w-0">
                                     <Input
                                         type="datetime-local"
                                         placeholder="Ngày bắt đầu"
-                                        className="bg-white"
+                                        className="bg-white w-full text-sm"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
                                     />
                                 </div>
-                                <div className="flex-1">
+                                <div className="flex-1 min-w-0">
                                     <Input
                                         type="datetime-local"
                                         placeholder="Ngày kết thúc"
-                                        className="bg-white"
+                                        className="bg-white w-full text-sm"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
                                     />
@@ -159,14 +159,14 @@ const AdminVouchersPage = () => {
                             </div>
                         </div>
                         <Button
-                            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg transition-shadow whitespace-nowrap"
+                            className="w-full sm:w-auto sm:self-start bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-md hover:shadow-lg transition-shadow"
                             onClick={() => setIsCreateDialogOpen(true)}
                         >
                             + Thêm Voucher
                         </Button>
                     </div>
                     {(searchText || startDate || endDate) && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -175,7 +175,7 @@ const AdminVouchersPage = () => {
                                     setStartDate("");
                                     setEndDate("");
                                 }}
-                                className="text-xs"
+                                className="text-xs h-8"
                             >
                                 Xóa bộ lọc
                             </Button>
@@ -188,80 +188,164 @@ const AdminVouchersPage = () => {
                         <CardTitle className="text-lg text-gray-800">Danh Sách Voucher</CardTitle>
                     </CardHeader>
 
-                    <CardContent className="p-0 overflow-x-auto">
-                        <div className="min-w-[900px]">
-                            <div className="grid grid-cols-[1.2fr_1.4fr_1.4fr_1.2fr_1.2fr_1.1fr_1.1fr_1fr] gap-3 px-4 py-3 text-sm font-semibold text-gray-500 border-b bg-white">
-                                <span className="text-left">Mã</span>
-                                <span className="text-center">Giá trị</span>
-                                <span className="text-center">Giảm tối đa</span>
-                                <span className="text-center">Bắt đầu</span>
-                                <span className="text-center">Kết thúc</span>
-                                <span className="text-center">Giới hạn</span>
-                                <span className="text-center">Trạng thái</span>
-                                <span className="text-right">Hành động</span>
-                            </div>
+                    <CardContent className="p-0">
+                        {/* Desktop Table Header - Hidden on mobile */}
+                        <div className="hidden lg:grid grid-cols-[1.2fr_1.4fr_1.4fr_1.2fr_1.2fr_1.1fr_1.1fr_1fr] gap-3 px-4 py-3 text-sm font-semibold text-gray-500 border-b bg-white">
+                            <span className="text-left">Mã</span>
+                            <span className="text-center">Giá trị</span>
+                            <span className="text-center">Giảm tối đa</span>
+                            <span className="text-center">Bắt đầu</span>
+                            <span className="text-center">Kết thúc</span>
+                            <span className="text-center">Giới hạn</span>
+                            <span className="text-center">Trạng thái</span>
+                            <span className="text-right">Hành động</span>
+                        </div>
 
-                            <div className="divide-y">
-                                {vouchers?.map((voucher) => (
-                                    <div
-                                        key={voucher.id}
-                                        className="grid grid-cols-[1.2fr_1.4fr_1.4fr_1.2fr_1.2fr_1.1fr_1.1fr_1fr] gap-3 px-4 py-4 items-center bg-white hover:bg-gray-50 transition-colors text-sm"
-                                    >
-                                        <div className="font-semibold text-gray-900">{voucher.code}</div>
-                                        <div className="flex flex-col items-center gap-1">
-                                            <Badge variant="outline" className="border-purple-200 text-purple-700 bg-purple-50">
-                                                {voucher.discountType === "percent"
-                                                    ? `${voucher.discountValue}%`
-                                                    : `${voucher.discountValue.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}`}
-                                            </Badge>
+                        <div className="divide-y">
+                            {vouchers && vouchers.length > 0 ? (
+                                vouchers.map((voucher) => (
+                                    <div key={voucher.id}>
+                                        {/* Desktop Table Row */}
+                                        <div
+                                            className="hidden lg:grid grid-cols-[1.2fr_1.4fr_1.4fr_1.2fr_1.2fr_1.1fr_1.1fr_1fr] gap-3 px-4 py-4 items-center bg-white hover:bg-gray-50 transition-colors text-sm"
+                                        >
+                                            <div className="font-semibold text-gray-900">{voucher.code}</div>
+                                            <div className="flex flex-col items-center gap-1">
+                                                <Badge variant="outline" className="border-purple-200 text-purple-700 bg-purple-50">
+                                                    {voucher.discountType === "percent"
+                                                        ? `${voucher.discountValue}%`
+                                                        : `${voucher.discountValue.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}`}
+                                                </Badge>
+                                            </div>
+                                            <div className="text-center font-semibold text-gray-800">
+                                                {voucher.maxDiscount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                                            </div>
+                                            <div className="text-center text-gray-800 text-xs">{voucher.startDate}</div>
+                                            <div className="text-center text-gray-800 text-xs">{voucher.endDate}</div>
+                                            <div className="text-center text-gray-800">{voucher.usageLimit}</div>
+                                            <div className="flex items-center justify-center">
+                                                <Badge
+                                                    variant={voucher.isActive ? "default" : "secondary"}
+                                                    className={
+                                                        voucher.isActive
+                                                            ? "bg-green-100 text-green-700 hover:bg-green-100"
+                                                            : "bg-gray-100 text-gray-600 hover:bg-gray-100"
+                                                    }
+                                                >
+                                                    {voucher.isActive ? "Đang áp dụng" : "Ngừng áp dụng"}
+                                                </Badge>
+                                            </div>
+                                            <div className="flex items-center gap-2 justify-end">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                                                    onClick={() => handleViewVoucher(voucher)}
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-gray-700 hover:bg-gray-100"
+                                                    onClick={() => handleEditClick(voucher)}
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    className="bg-red-500 hover:bg-red-600"
+                                                    onClick={() => handleDeleteClick(voucher)}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <div className="text-center font-semibold text-gray-800">
-                                            {voucher.maxDiscount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
-                                        </div>
-                                        <div className="text-center text-gray-800 text-xs">{voucher.startDate}</div>
-                                        <div className="text-center text-gray-800 text-xs">{voucher.endDate}</div>
-                                        <div className="text-center text-gray-800">{voucher.usageLimit}</div>
-                                        <div className="flex items-center justify-center">
-                                            <Badge
-                                                variant={voucher.isActive ? "default" : "secondary"}
-                                                className={
-                                                    voucher.isActive
-                                                        ? "bg-green-100 text-green-700 hover:bg-green-100"
-                                                        : "bg-gray-100 text-gray-600 hover:bg-gray-100"
-                                                }
-                                            >
-                                                {voucher.isActive ? "Đang áp dụng" : "Ngừng áp dụng"}
-                                            </Badge>
-                                        </div>
-                                        <div className="flex items-center gap-2 justify-end">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                                                onClick={() => handleViewVoucher(voucher)}
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-gray-700 hover:bg-gray-100"
-                                                onClick={() => handleEditClick(voucher)}
-                                            >
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button
-                                                variant="destructive"
-                                                size="sm"
-                                                className="bg-red-500 hover:bg-red-600"
-                                                onClick={() => handleDeleteClick(voucher)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+
+                                        {/* Mobile/Tablet Card Layout */}
+                                        <div
+                                            className="lg:hidden p-4 bg-white hover:bg-gray-50 transition-colors border-b border-gray-100"
+                                        >
+                                            <div className="space-y-3">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="font-semibold text-gray-900 text-base mb-1">{voucher.code}</h3>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <Badge
+                                                                variant={voucher.isActive ? "default" : "secondary"}
+                                                                className={`text-xs ${voucher.isActive
+                                                                    ? "bg-green-100 text-green-700 hover:bg-green-100"
+                                                                    : "bg-gray-100 text-gray-600 hover:bg-gray-100"
+                                                                }`}
+                                                            >
+                                                                {voucher.isActive ? "Đang áp dụng" : "Ngừng áp dụng"}
+                                                            </Badge>
+                                                            <Badge variant="outline" className="border-purple-200 text-purple-700 bg-purple-50 text-xs">
+                                                                {voucher.discountType === "percent"
+                                                                    ? `${voucher.discountValue}%`
+                                                                    : `${voucher.discountValue.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}`}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0 border-purple-200 text-purple-700 hover:bg-purple-50"
+                                                            onClick={() => handleViewVoucher(voucher)}
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0 text-gray-700 hover:bg-gray-100"
+                                                            onClick={() => handleEditClick(voucher)}
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0 bg-red-500 hover:bg-red-600"
+                                                            onClick={() => handleDeleteClick(voucher)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs text-gray-500 mb-1">Giảm tối đa</span>
+                                                        <span className="font-semibold text-gray-900">
+                                                            {voucher.maxDiscount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs text-gray-500 mb-1">Giới hạn</span>
+                                                        <span className="font-semibold text-gray-900">{voucher.usageLimit}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2 text-sm">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs text-gray-500 mb-1">Bắt đầu</span>
+                                                        <span className="text-gray-800 text-xs">{voucher.startDate}</span>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs text-gray-500 mb-1">Kết thúc</span>
+                                                        <span className="text-gray-800 text-xs">{voucher.endDate}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                ))
+                            ) : (
+                                <div className="p-8 text-center text-gray-500">
+                                    <p className="text-sm">Không tìm thấy voucher nào</p>
+                                </div>
+                            )}
                         </div>
                     </CardContent>
 
@@ -275,7 +359,7 @@ const AdminVouchersPage = () => {
                 </Card>
 
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                    <DialogContent className="max-w-3xl">
+                    <DialogContent className="w-[95vw] max-w-3xl max-h-[95vh] overflow-y-auto p-4 sm:p-6">
                         <DialogHeader>
                             <DialogTitle>Thêm Voucher Mới</DialogTitle>
                             <DialogDescription>
@@ -293,7 +377,7 @@ const AdminVouchersPage = () => {
                 </Dialog>
 
                 <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
-                    <DialogContent className="max-w-3xl">
+                    <DialogContent className="w-[95vw] max-w-3xl max-h-[95vh] overflow-y-auto p-4 sm:p-6">
                         <DialogHeader>
                             <DialogTitle>Chi Tiết Voucher</DialogTitle>
                         </DialogHeader>
@@ -306,7 +390,7 @@ const AdminVouchersPage = () => {
                 </Dialog>
 
                 <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="w-[95vw] max-w-md p-4 sm:p-6">
                         <DialogHeader>
                             <DialogTitle>Xác nhận xóa voucher</DialogTitle>
                             <DialogDescription>
@@ -330,7 +414,7 @@ const AdminVouchersPage = () => {
                 </Dialog>
 
                 <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                    <DialogContent className="max-w-3xl">
+                    <DialogContent className="w-[95vw] max-w-3xl max-h-[95vh] overflow-y-auto p-4 sm:p-6">
                         <DialogHeader>
                             <DialogTitle>Chỉnh sửa Voucher</DialogTitle>
                             <DialogDescription>

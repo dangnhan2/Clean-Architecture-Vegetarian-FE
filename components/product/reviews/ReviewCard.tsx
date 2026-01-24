@@ -25,13 +25,28 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
   return (
     <Card className="border border-gray-100 shadow-sm">
       <CardContent className="p-3 md:p-4 lg:p-5 space-y-3 md:space-y-4">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center justify-between">
-            <p className="text-sm md:text-base font-semibold text-gray-900">
-              {review.fullName}
-            </p>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs md:text-sm text-gray-500 font-medium">Người đánh giá:</span>
+              <p className="text-sm md:text-base font-semibold text-gray-900">
+                {review.userName || "Khách hàng"}
+              </p>
+              {review.ratingAt && (
+                <>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-xs md:text-sm text-gray-500">
+                    {new Date(review.ratingAt).toLocaleDateString("vi-VN", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-0.5 md:gap-1">{renderStars(review.stars)}</div>
           </div>
-          <div className="flex items-center gap-0.5 md:gap-1">{renderStars(review.stars)}</div>
         </div>
 
         {review.comment && (

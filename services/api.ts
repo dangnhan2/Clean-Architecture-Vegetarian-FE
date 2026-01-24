@@ -197,8 +197,12 @@ export const ValidateVoucher = (userId : string, voucherId : string) => {
     return axios.post<IBackendRes<IVoucherValidationInfo>>(`/api/common/user/voucher/validation`, {userId, voucherId});
 }
 
-export const CreateOrderWithQR = (userId : string, voucherId : string | null | undefined, addressId : string, note : string | null | undefined, paymentMethod : string, totalAmount : number) => {
-    return axios.post<IBackendRes<IOrderInfo>>(`/api/common/order/qr`, {userId, voucherId, addressId, note, paymentMethod, totalAmount});
+export const CreateOrderWithQR = (userId : string, voucherId : string | null | undefined, addressId : string, note : string | null | undefined, paymentMethod : string, totalAmount : number, returnUrl? : string) => {
+    const payload: any = {userId, voucherId, addressId, note, paymentMethod, totalAmount};
+    if (returnUrl) {
+        payload.returnUrl = returnUrl;
+    }
+    return axios.post<IBackendRes<IOrderInfo>>(`/api/common/order/qr`, payload);
 }
 
 export const CreateOrderWithCOD = (userId : string, voucherId : string | null | undefined, addressId : string, note : string | null | undefined, paymentMethod : string, totalAmount : number) => {
@@ -208,6 +212,7 @@ export const CreateOrderWithCOD = (userId : string, voucherId : string | null | 
 export const GetOrdersByUser = (userId : string, query : string) => {
     return axios.get<IBackendRes<IModelPaginate<IOrderHistory>>>(`/api/common/user/${userId}/orders?${query}`)
 }
+
 
 export const GetRatingsByMenu = (menuId : string, query : string) => {
     return axios.get<IBackendRes<IModelPaginate<IRating>>>(`/api/common/ratings/menu/${menuId}?${query}`);

@@ -111,21 +111,11 @@ const CheckoutPage = () => {
 
     const tax = subtotal * TAX_RATE;
 
-    // Calculate voucher discount (derive from id)
+    // Get selected voucher for display purposes only
     const selectedVoucher = vouchers?.find(v => v.id === appliedVoucherId) || null;
-    let voucherDiscount = 0;
-    if (selectedVoucher) {
-        if (selectedVoucher.discountType === "percent") {
-            voucherDiscount = Math.min(
-                (subtotal * selectedVoucher.discountValue) / 100,
-                selectedVoucher.maxDiscount
-            );
-        } else {
-            voucherDiscount = selectedVoucher.discountValue;
-        }
-    }
 
-    const total = subtotal + tax - voucherDiscount;
+    // Use totalAmount from API validation result if voucher is applied, otherwise calculate from subtotal + tax
+    const total = voucherValidationInfo?.totalAmount ?? (subtotal + tax);
 
     const handlePlaceOrder = async () => {
         if (!user?.id) {
@@ -142,18 +132,37 @@ const CheckoutPage = () => {
         setIsPlacingOrder(true);
         try {
             if (paymentMethod === "QR") {
+                // Prepare returnUrl for backend to create RETURN_URL with orderCode
+                const returnUrl = typeof window !== "undefined" 
+                    ? `${window.location.origin}/checkout/success?orderCode={orderCode}&paymentMethod=QR`
+                    : undefined;
+                
                 let res = await CreateOrderWithQR(
                     user.id,
                     appliedVoucherId,
                     selectedAddressId,
                     note || null,
                     paymentMethod,
-                    total
+                    total,
+                    returnUrl
                 );
-                if (res.isSuccess && Number(res.statusCode) === 201) {
-                    toast.success(res.message)
+                if (res.isSuccess && Number(res.statusCode) === 201 && res.data) {
+                    toast.success(res.message);
                     setConfirmOrderDialogOpen(false);
-                    router.push(`${res.data?.checkoutUrl}`)
+                    
+                    // Fetch cart again to clear it after order creation
+                    await fetchCart();
+                    
+                    // API returns IOrderInfo with checkoutUrl and orderCode
+                    const orderInfo = res.data as IOrderInfo;
+                    if (orderInfo.checkoutUrl) {
+                        // Backend should have configured RETURN_URL as: 
+                        // {returnUrl}/checkout/success?orderCode=${orderCode}&paymentMethod=QR
+                        // Redirect to PayOS checkout URL
+                        window.location.href = orderInfo.checkoutUrl;
+                    } else {
+                        toast.error("Không tìm thấy URL thanh toán");
+                    }
                 } else {
                     toast.error(res.message || "Không thể đặt hàng. Vui lòng thử lại");
                 }
@@ -596,6 +605,7 @@ const CheckoutPage = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
         </div>
     );
 };

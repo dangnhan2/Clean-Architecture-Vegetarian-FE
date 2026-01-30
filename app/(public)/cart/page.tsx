@@ -10,6 +10,7 @@ import { AddToCart } from "@/services/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, useMemo } from "react";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const TAX_RATE = 0.08;
 
@@ -94,6 +95,23 @@ const CartPage = () => {
 
     return (
         <div className="min-h-screen bg-[#F7F7F8]">
+            {/* Hero Section */}
+            <div className="relative w-full h-[200px] sm:h-[250px] md:h-[300px] lg:h-[350px] overflow-hidden">
+                <Image
+                    src="/dummy.png"
+                    alt="Giỏ hàng"
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                    priority
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-black">
+                        Giỏ hàng
+                    </h1>
+                </div>
+            </div>
+
             <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-10">
 
                 <Link href="/" className="flex items-center gap-2 text-gray-700 hover:text-black mb-4 md:mb-6 text-sm md:text-base">
@@ -102,7 +120,6 @@ const CartPage = () => {
 
                 <div className="flex items-center justify-between mb-4 md:mb-6">
                     <div>
-                        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Giỏ hàng</h1>
                         <p className="text-xs md:text-sm text-gray-500">{localItems.length} sản phẩm trong giỏ</p>
                     </div>
                     <div></div>
@@ -266,4 +283,12 @@ const CartPage = () => {
     );
 };
 
-export default CartPage;
+const CartPageWrapper = () => {
+    return (
+        <ProtectedRoute>
+            <CartPage />
+        </ProtectedRoute>
+    );
+};
+
+export default CartPageWrapper;

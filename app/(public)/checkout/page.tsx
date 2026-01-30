@@ -18,6 +18,7 @@ import {
 import { useAuth } from "@/context/context";
 import { CreateOrderWithCOD, CreateOrderWithQR, GetAddresses, GetVouchers, ValidateVoucher } from "@/services/api";
 import { toast } from "sonner";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const TAX_RATE = 0.08;
 
@@ -610,5 +611,13 @@ const CheckoutPage = () => {
     );
 };
 
-export default CheckoutPage;
+const CheckoutPageWrapper = () => {
+    return (
+        <ProtectedRoute>
+            <CheckoutPage />
+        </ProtectedRoute>
+    );
+};
+
+export default CheckoutPageWrapper;
 

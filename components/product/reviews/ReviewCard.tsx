@@ -1,14 +1,26 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { useState } from "react";
+import { Star, MessageSquare, Send } from "lucide-react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
+import { ResponseRating } from "@/services/api";
+import { useAuth } from "@/context/context";
+import { toast } from "sonner";
 
 interface ReviewCardProps {
   review: IRating;
+  onResponseSuccess?: () => void;
 }
 
-const ReviewCard = ({ review }: ReviewCardProps) => {
+const ReviewCard = ({ review, onResponseSuccess }: ReviewCardProps) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "Admin";
+  const [isResponding, setIsResponding] = useState(false);
+  const [responseText, setResponseText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const adminResponse = review.responseComment || null;
+
   const renderStars = (value: number) =>
     Array.from({ length: 5 }).map((_, idx) => {
       const filled = idx < value;
@@ -22,6 +34,35 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
       );
     });
 
+  const handleSubmitResponse = async () => {
+    if (!user?.id || !responseText.trim()) {
+      toast.error("Vui lòng nhập phản hồi");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await ResponseRating(user.id, review.id, responseText.trim());
+      if (res.isSuccess && Number(res.statusCode) === 201) {
+        toast.success(res.message);
+        setResponseText("");
+        setIsResponding(false);
+        if (onResponseSuccess) {
+          onResponseSuccess();
+        }
+      } else {
+        const errorMessage = typeof res.message === 'string' ? res.message : "Không thể gửi phản hồi";
+        toast.error(errorMessage);
+      }
+    } catch (error: any) {
+      console.error("Error submitting response:", error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Đã xảy ra lỗi khi gửi phản hồi";
+      toast.error(typeof errorMessage === 'string' ? errorMessage : "Đã xảy ra lỗi khi gửi phản hồi");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Card className="border border-gray-100 shadow-sm">
       <CardContent className="p-3 md:p-4 lg:p-5 space-y-3 md:space-y-4">
@@ -30,7 +71,7 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs md:text-sm text-gray-500 font-medium">Người đánh giá:</span>
               <p className="text-sm md:text-base font-semibold text-gray-900">
-                {review.userName || "Khách hàng"}
+                {review.customerUserName || "Khách hàng"}
               </p>
               {review.ratingAt && (
                 <>
@@ -50,7 +91,9 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
         </div>
 
         {review.comment && (
-          <p className="text-xs md:text-sm text-gray-700 leading-relaxed">{review.comment}</p>
+          <p className="text-xs md:text-sm text-gray-700 leading-relaxed">
+            {review.comment}
+          </p>
         )}
 
         {review.images?.length ? (
@@ -71,6 +114,36 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
             ))}
           </div>
         ) : null}
+
+        {/* Admin Response Section - Display for all users */}
+        {adminResponse && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 md:p-4">
+              <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-purple-600" />
+                  <span className="text-xs md:text-sm font-semibold text-purple-700">
+                    Phản hồi từ quản trị viên
+                    {review.adminUserName && (
+                      <span className="text-purple-600 ml-1">({review.adminUserName})</span>
+                    )}
+                  </span>
+                </div>
+                {review.responseAt && (
+                  <span className="text-xs text-gray-500">
+                    {new Date(review.responseAt).toLocaleDateString("vi-VN", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs md:text-sm text-gray-700 leading-relaxed">{adminResponse}</p>
+            </div>
+          </div>
+        )}
+      
       </CardContent>
     </Card>
   );

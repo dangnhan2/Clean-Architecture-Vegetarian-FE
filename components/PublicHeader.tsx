@@ -31,8 +31,6 @@ const PublicHeader = () => {
         setAccessToken(undefined);
         setUser(undefined);
         setIsAuthen(false);
-        // Remove cookie for middleware
-        document.cookie = "access_token=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
         toast.success(res.message);
         router.push("/auth/login");
     }else{

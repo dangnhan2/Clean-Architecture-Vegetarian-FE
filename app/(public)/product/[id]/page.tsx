@@ -32,16 +32,7 @@ const ProductDetailPage = () => {
   const formatRating = (value: number | null | undefined) =>
     typeof value === "number" && Number.isFinite(value) ? value.toFixed(1) : "0.0";
 
-  const getDiscountPercent = (item: IFoodItem) => {
-    if (!item.isOnSale || !item.originalPrice) return null;
-    const percent = 100 - (item.discountPrice / item.originalPrice) * 100;
-    return Math.max(1, Math.round(percent));
-  };
-
-  const getDiscountLabel = (item: IFoodItem) => {
-    const percent = getDiscountPercent(item);
-    return percent ? `Giảm ${percent}%` : "Giảm giá";
-  };
+  // discountPercent is provided by API; only render it when item.isOnSale is true.
 
   useEffect(() => {
     fetchRecommendedProducts(params?.id as string)
@@ -130,9 +121,9 @@ const ProductDetailPage = () => {
               {/* Left Column - Product Image */}
               <div className="relative w-full aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
                 <div className="absolute top-2 left-2 md:top-4 md:left-4 flex flex-col gap-1 md:gap-2 z-10">
-                  {product?.isOnSale && (
+                  {product?.isOnSale && product.discountPercent && product.discountPercent > 0 && (
                     <Badge className="bg-red-500 text-white hover:bg-red-500/90 text-xs md:text-sm px-2 md:px-3 py-1 md:py-1.5">
-                      {product ? getDiscountLabel(product) : "Giảm giá"}
+                      -{product.discountPercent}%
                     </Badge>
                   )}
                   {!product?.isAvailable && (
@@ -213,11 +204,6 @@ const ProductDetailPage = () => {
                         <span className="text-base md:text-lg text-gray-500 line-through">
                           {formatCurrency(product?.originalPrice)}
                         </span>
-                        <Badge className="bg-red-500 text-white text-xs md:text-sm">
-                          {product && getDiscountPercent(product)
-                            ? `-${getDiscountPercent(product)}%`
-                            : "Giảm giá"}
-                        </Badge>
                       </>
                     )}
                   </div>
@@ -287,9 +273,9 @@ const ProductDetailPage = () => {
                   {/* Image Section */}
                   <div className="relative aspect-[4/3]">
                     <div className="absolute top-2 left-2 md:top-3 md:left-3 flex flex-col gap-1 md:gap-2 z-10">
-                      {item.isOnSale && (
+                      {item.isOnSale && item.discountPercent && item.discountPercent > 0 && (
                         <Badge className="bg-red-500 text-white hover:bg-red-500/90 text-xs md:text-sm px-1.5 md:px-2 py-0.5 md:py-1">
-                          Giảm giá
+                          -{item.discountPercent}%
                         </Badge>
                       )}
                       {!item.isAvailable && (
@@ -331,9 +317,12 @@ const ProductDetailPage = () => {
                         {item.soldQuantity || 0} đã bán
                       </p>
                       <div className="flex flex-col items-start md:items-end">
-                        <span className="text-base md:text-lg font-bold text-gray-900">
-                          {formatCurrency(getEffectivePrice(item))}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-base md:text-lg font-bold text-gray-900">
+                            {formatCurrency(getEffectivePrice(item))}
+                          </span>
+                          {/* discountPercent badge is shown on image only (not near price) */}
+                        </div>
                         {item.isOnSale && (
                           <span className="text-xs text-gray-500 line-through">
                             {formatCurrency(item.originalPrice)}

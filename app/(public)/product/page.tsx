@@ -114,27 +114,19 @@ export default function ProductPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="bg-gray-100 py-8 md:py-12 lg:py-16 px-4 md:px-8 lg:px-40">
-        <div className="max-w-7xl mx-auto">
-          {/* Fast Delivery Badge */}
-          <div className="mb-4 md:mb-6">
-            <Badge className="bg-black text-white hover:bg-black/90 rounded-md px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm">
-              Fast Delivery
-            </Badge>
-          </div>
-
-          {/* Main Heading */}
-          <h1 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-3 md:mb-4 max-w-2xl">
-            Delicious Food, Delivered to Your Door
+      <div className="relative w-full h-[200px] sm:h-[250px] md:h-[300px] lg:h-[350px] overflow-hidden">
+        <Image
+          src="/dummy.png"
+          alt="Tất cả sản phẩm"
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-black">
+            Tất cả sản phẩm
           </h1>
-
-          {/* Description */}
-          <p className="text-gray-600 text-sm md:text-base lg:text-lg mb-6 md:mb-8 max-w-2xl">
-            Order from our selection of fresh, delicious meals prepared by top
-            chefs. Fast delivery, amazing taste.
-          </p>
-
-        
         </div>
       </div>
 
@@ -143,9 +135,9 @@ export default function ProductPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-4 md:gap-6 lg:gap-8">
             {/* Left Sidebar - Categories */}
-            <aside className="w-full lg:w-80 flex-shrink-0 lg:sticky lg:top-24">
-              <Card className="p-4 md:p-6 shadow-md">
-                <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3 md:mb-4">
+            <aside className="w-full lg:w-56 flex-shrink-0 lg:sticky lg:top-24">
+              <Card className="p-3 md:p-4 shadow-md">
+                <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-2 md:mb-3">
                   Danh mục món ăn
                 </h2>
                 <div className="flex lg:flex-col gap-2 lg:space-y-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 -mx-4 md:-mx-6 px-4 md:px-6 lg:mx-0 lg:px-0">
@@ -157,7 +149,7 @@ export default function ProductPage() {
                           "All"
                         );
                       }}
-                      className={`flex-shrink-0 lg:w-full flex items-center justify-between px-3 md:p-3 py-2 md:py-3 rounded-lg transition-colors cursor-pointer text-sm md:text-base ${
+                      className={`flex-shrink-0 lg:w-full flex items-center justify-between px-2 md:px-3 py-1.5 md:py-2 rounded-lg transition-colors cursor-pointer text-xs md:text-sm ${
                         selectedCategory === "All"
                           ? "bg-black text-white"
                           : "text-gray-700 hover:bg-gray-100 bg-gray-50"
@@ -174,7 +166,7 @@ export default function ProductPage() {
                           selectedCategory === category.name ? "All" : category.name
                         );
                       }}
-                      className={`flex-shrink-0 lg:w-full flex items-center justify-between px-3 md:p-3 py-2 md:py-3 rounded-lg transition-colors text-sm md:text-base ${
+                      className={`flex-shrink-0 lg:w-full flex items-center justify-between px-2 md:px-3 py-1.5 md:py-2 rounded-lg transition-colors text-xs md:text-sm ${
                         selectedCategory === category.name
                           ? "bg-black text-white"
                           : "text-gray-700 hover:bg-gray-100 bg-gray-50"
@@ -189,8 +181,8 @@ export default function ProductPage() {
 
             {/* Right Main Area - Food Listings */}
             <div className="flex-1 lg:flex lg:flex-col">
-              {/* Sort Options (sticky) */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 flex-wrap lg:sticky lg:top-24 lg:z-10 lg:bg-white lg:py-2">
+              {/* Sort Options */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 flex-wrap">
                 <span className="text-gray-600 font-medium text-sm md:text-base">Xắp xếp:</span>
                 <div className="flex gap-2 flex-wrap">
                   {sortOptions.map((option) => (
@@ -210,10 +202,10 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              {/* Scrollable Items area */}
-              <div className="lg:max-h-[calc(100vh-160px)] lg:overflow-auto lg:pr-2">
+              {/* Items area */}
+              <div>
                 {/* Food Item Cards Grid */}
-                <div className="grid grid-cols-2 gap-3 md:gap-4 lg:gap-6 mb-6 md:mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-6 md:mb-8">
                   {items?.map((item) => (
                     <Card
                       key={item.id}
@@ -223,9 +215,9 @@ export default function ProductPage() {
                       {/* Image Section */}
                       <div className="relative aspect-[4/3] md:aspect-[16/9]">
                         <div className="absolute top-2 left-2 md:top-3 md:left-3 flex flex-col gap-1 md:gap-2 z-10">
-                          {item.isOnSale && (
+                          {item.isOnSale && item.discountPercent && item.discountPercent > 0 && (
                             <Badge className="bg-red-500 text-white hover:bg-red-500/90 text-xs md:text-sm px-1.5 md:px-2 py-0.5 md:py-1">
-                              Giảm giá
+                              -{item.discountPercent}%
                             </Badge>
                           )}
                           {!item.isAvailable && (
@@ -239,7 +231,7 @@ export default function ProductPage() {
                           alt={item.name}
                           fill
                           className="object-cover"
-                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 33vw"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 33vw"
                         />
                       </div>
 
@@ -270,9 +262,12 @@ export default function ProductPage() {
                       {/* Footer with Price and Add Button */}
                       <CardFooter className="px-2 md:px-4 pb-2 md:pb-4 pt-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-0">
                         <div className="flex flex-col w-full md:w-auto">
-                          <span className="text-base md:text-lg lg:text-xl font-bold text-gray-900">
-                            {formatCurrency(getEffectivePrice(item))}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-base md:text-lg lg:text-xl font-bold text-[#7cc242]">
+                              {formatCurrency(getEffectivePrice(item))}
+                            </span>
+                            {/* discountPercent badge is shown on image only (not near price) */}
+                          </div>
                           {item.isOnSale && (
                             <span className="text-xs md:text-sm text-gray-500 line-through">
                               {formatCurrency(item.originalPrice)}
@@ -280,16 +275,16 @@ export default function ProductPage() {
                           )}
                         </div>
                         <Button 
-                          className="bg-black text-white hover:bg-black/90 rounded-md px-2 md:px-4 py-1.5 md:py-2 h-8 md:h-9 flex items-center gap-1 md:gap-1.5 cursor-pointer text-xs md:text-sm w-full md:w-auto" 
+                          className="bg-black text-white hover:bg-black/90 rounded-md px-2 md:px-3 py-1 md:py-1.5 h-7 md:h-8 flex items-center gap-1 cursor-pointer text-xs md:text-sm w-full md:w-auto" 
                           disabled={!item.isAvailable}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleAddToCart(item);
                           }}
                         >
-                          <Plus className="h-3 w-3 md:h-4 md:w-4" />
-                          <span className="hidden sm:inline">{item.isAvailable ? "Thêm vào giỏ hàng" : "Hết hàng"}</span>
-                          <span className="sm:hidden">{item.isAvailable ? "Thêm" : "Hết"}</span>
+                          <Plus className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                          <span className="hidden md:inline">{item.isAvailable ? "Thêm" : "Hết"}</span>
+                          <span className="md:hidden">{item.isAvailable ? "+" : "×"}</span>
                         </Button>
                       </CardFooter>
                     </Card>

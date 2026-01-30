@@ -18,6 +18,7 @@ import {
   Bell,
   Menu,
   X,
+  Megaphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import NotificationBell from "./NotificationBell";
@@ -38,8 +39,6 @@ const AdminHeader = ({ children }: AdminHeaderProps) => {
       setAccessToken(undefined);
       setUser(undefined);
       setIsAuthen(false);
-      // Remove cookie for middleware
-      document.cookie = "access_token=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;";
       toast.success(res.message);
       router.push("/auth/login");
     } else {
@@ -82,6 +81,11 @@ const AdminHeader = ({ children }: AdminHeaderProps) => {
       href: "/admin/notifications",
       label: "Thông báo",
       icon: Bell,
+    },
+    {
+      href: "/admin/advertisement",
+      label: "Quản Lý Quảng Cáo",
+      icon: Megaphone,
     },
   ];
 

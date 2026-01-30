@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Map order status number to display text and badge variant
 const getOrderStatus = (status: number): { text: string; variant: "default" | "secondary" | "destructive" | "outline" } => {
@@ -464,5 +465,13 @@ const OrderHistoryPage = () => {
   );
 };
 
-export default OrderHistoryPage;
+const OrderHistoryPageWrapper = () => {
+  return (
+    <ProtectedRoute>
+      <OrderHistoryPage />
+    </ProtectedRoute>
+  );
+};
+
+export default OrderHistoryPageWrapper;
 

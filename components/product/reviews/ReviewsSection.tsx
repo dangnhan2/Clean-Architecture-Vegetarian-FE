@@ -21,6 +21,7 @@ const ProductReviewsSection = ({ menuId }: ProductReviewsSectionProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedStars, setSelectedStars] = useState<number | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     setPage(1);
@@ -77,7 +78,7 @@ const ProductReviewsSection = ({ menuId }: ProductReviewsSectionProps) => {
     return () => {
       isSubscribed = false;
     };
-  }, [menuId, page, selectedStars]);
+  }, [menuId, page, selectedStars, refreshKey]);
 
   const handleStarFilter = (stars: number | null) => {
     setSelectedStars(stars);
@@ -154,7 +155,13 @@ const ProductReviewsSection = ({ menuId }: ProductReviewsSectionProps) => {
             <>
               <div className="space-y-3 md:space-y-4">
                 {reviews.map((review) => (
-                  <ReviewCard key={review.id} review={review} />
+                  <ReviewCard 
+                    key={review.id} 
+                    review={review}
+                    onResponseSuccess={() => {
+                      setRefreshKey(prev => prev + 1);
+                    }}
+                  />
                 ))}
               </div>
               <PaginationControl

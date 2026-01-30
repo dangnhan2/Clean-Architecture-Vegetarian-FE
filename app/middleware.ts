@@ -18,16 +18,20 @@ const publicAuthRoutes = ["/auth/login", "/auth/register"];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Get token from cookies (since middleware runs on server, we can't access localStorage)
-  // Token can be stored in cookies by setting it in login/register pages
-  const token = request.cookies.get("access_token")?.value;
+  // Note: Token is now stored in localStorage only (client-side)
+  // Middleware cannot access localStorage, so we cannot check authentication here
+  // Route protection is handled by ProtectedRoute component using React Context
+  // This middleware is kept for potential future server-side checks if needed
 
   // Check if accessing protected route
+  // These routes require authentication (handled by ProtectedRoute component):
+  // - /checkout, /account, /purchase, /cart
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
 
   // Check if accessing admin route
+  // Admin routes require Admin role (handled by ProtectedRoute component with requireAdmin=true)
   const isAdminRoute = adminRoutes.some((route) =>
     pathname.startsWith(route)
   );
@@ -37,28 +41,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
 
-  // Redirect to login if accessing protected route without token
-  if (isProtectedRoute && !token) {
-    const loginUrl = new URL("/auth/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Redirect to login if accessing admin route without token
-  if (isAdminRoute && !token) {
-    const loginUrl = new URL("/auth/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Optional: Redirect authenticated users away from login/register pages
-  // Note: This might not work perfectly if user only has localStorage token (not cookie)
-  // Better to handle this on client-side
-  if (isPublicAuthRoute && token) {
-    const redirectTo = request.nextUrl.searchParams.get("redirect") || "/";
-    return NextResponse.redirect(new URL(redirectTo, request.url));
-  }
-
+  // All route protection is handled client-side by ProtectedRoute component
+  // which uses React Context to check authentication and user role
   return NextResponse.next();
 }
 

@@ -58,6 +58,7 @@ declare global {
         isAvailable: boolean
         isOnSale : boolean
         createdAt: string
+        discountPercent : number
     }
 
     interface ICart{
@@ -136,11 +137,14 @@ declare global {
     interface IRating {
         id : string
         menuId : string
-        userName : string
+        customerUserName : string
         stars : number
         comment : string
         ratingAt : string
         images : string[]
+        responseComment? : string | null,
+        responseAt? : string | null
+        adminUserName? : string | null
     }
 
     interface IDashboard {
@@ -185,6 +189,17 @@ declare global {
         name : string
         price: number
         imageUrl: string
+    }
+
+    interface IAdvertisement{
+        id : string
+        title : string
+        bannerUrl : string
+        adTargetType : string
+        targetKey : string
+        isActive : boolean
+        startAt : string
+        endAt : string | null
     }
 }
 

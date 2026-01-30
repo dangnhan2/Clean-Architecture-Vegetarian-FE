@@ -29,11 +29,11 @@ export const ChangePassword = (id : string | undefined, currentPassword : string
 }
 
 export const ForgetPassword = (email : string) => {
-    return axios.post<IBackendRes<null>>(`/api/auth/forgot-password`, {email});
+    return axios.post<IBackendRes<null>>(`/api/auth/password/forgot`, {email});
 }
 
 export const ResetPassword = (email : string, newPassword: string, confirmPassword : string) => {
-    return axios.post<IBackendRes<null>>(`/api/auth/reset-password`, {email, newPassword, confirmPassword});
+    return axios.post<IBackendRes<null>>(`/api/auth/password/reset`, {email, newPassword, confirmPassword});
 }
 
 export const GetAddresses = (id : string) => {
@@ -283,4 +283,89 @@ export const MarkNotificationAsRead = (notificationIds: string[]) => {
 
 export const SearchMenu = (keyword : string) => {
     return axios.get<IBackendRes<ISearchMenuResponse[]>>(`/api/common/searching?Keyword=${keyword}`);
+}
+
+export const GetAdvertisementsByAdmin = () => {
+    return axios.get<IBackendRes<IAdvertisement[]>>(`/api/admin/advertisements`);
+}
+
+export const GetAdvertisements = () => {
+    return axios.get<IBackendRes<IAdvertisement[]>>(`/api/common/advertisements`);
+}
+
+export const AddAdvertisement = (
+    title: string,
+    bannerUrl: File,
+    adTargetType: string,
+    targetKey: string | null | undefined,
+    startAt: string | null | undefined,
+    endAt: string | null | undefined,
+    isActive: boolean
+) => {
+    const formData = new FormData();
+    formData.append("Title", title);
+    formData.append("BannerUrl", bannerUrl);
+    formData.append("AdTargetType", adTargetType);
+    if (targetKey) {
+        formData.append("TargetKey", targetKey);
+    }
+    if (startAt) {
+        formData.append("StartAt", startAt);
+    }
+    if (endAt) {
+        formData.append("EndAt", endAt);
+    }
+    formData.append("IsActive", String(isActive));
+
+    return axios.post<IBackendRes<string>>(`/api/admin/advertisement`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+}
+
+export const UpdateAdvertisement = (
+    id: string,
+    title: string,
+    bannerUrl: File | null | undefined,
+    adTargetType: string,
+    targetKey: string | null | undefined,
+    startAt: string | null | undefined,
+    endAt: string | null | undefined,
+    isActive: boolean
+) => {
+    const formData = new FormData();
+    formData.append("Title", title);
+    if (bannerUrl) {
+        formData.append("BannerUrl", bannerUrl);
+    }
+    formData.append("AdTargetType", adTargetType);
+    if (targetKey) {
+        formData.append("TargetKey", targetKey);
+    }
+    if (startAt) {
+        formData.append("StartAt", startAt);
+    }
+    if (endAt) {
+        formData.append("EndAt", endAt);
+    }
+    formData.append("IsActive", String(isActive));
+
+    return axios.put<IBackendRes<string>>(`/api/admin/advertisement/${id}`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+}
+
+export const DeleteAdvertisement = (id: string) => {
+    return axios.delete<IBackendRes<null>>(`/api/admin/advertisement/${id}`);
+}
+
+export const ResponseRating = (userId : string, ratingId : string, comment : string) => {
+    return axios.post<IBackendRes<null>>(`/api/admin/rating/responsing`, {userId, ratingId, comment});
+}
+
+export const GetMenusOnSale = (query: string) => {
+    return axios.get<IBackendRes<IModelPaginate<IFoodItem>>>(`/api/common/menus/onsale?${query}`);
 }

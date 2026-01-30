@@ -13,6 +13,7 @@ import { Trash2, MapPin, Edit2, Phone, User } from "lucide-react";
 import { ChangePassword, DeleteAddress, GetAddresses, UpdateProfile, AddAddress, UpdateAddress } from "@/services/api";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const TABS = ["Thông tin cá nhân", "Địa chỉ", "Bảo mật"] as const;
 type TabKey = typeof TABS[number];
@@ -703,4 +704,12 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+const ProfilePageWrapper = () => {
+  return (
+    <ProtectedRoute>
+      <ProfilePage />
+    </ProtectedRoute>
+  );
+};
+
+export default ProfilePageWrapper;

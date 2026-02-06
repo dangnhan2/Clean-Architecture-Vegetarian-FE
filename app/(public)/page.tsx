@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowRight, Star } from "lucide-react";
 import {
@@ -47,46 +47,8 @@ export default function Home() {
       let res = await GetAdvertisements();
       if (res.isSuccess && Number(res.statusCode) === 200){
         if (res?.data){
-          // Filter only active advertisements and sort by priority
-          const now = new Date();
-          const activeAds = res.data
-            .filter(ad => {
-              // Check if advertisement is active
-              if (!ad.isActive) return false;
-              
-              // Check start date (if startAt exists, it should be <= now or null)
-              if (ad.startAt) {
-                try {
-                  const startAt = new Date(ad.startAt);
-                  if (isNaN(startAt.getTime())) {
-                    // Invalid date, skip this ad
-                    return false;
-                  }
-                  // Only filter out if startAt is in the future
-                  // But allow ads that haven't started yet to be shown
-                  // Commented out: if (startAt > now) return false;
-                } catch (e) {
-                  return false;
-                }
-              }
-              
-              // Check end date (if endAt exists, it should be >= now or null)
-              if (ad.endAt) {
-                try {
-                  const endAt = new Date(ad.endAt);
-                  if (isNaN(endAt.getTime())) {
-                    // Invalid date, skip this ad
-                    return false;
-                  }
-                  // Filter out ads that have already ended
-                  if (endAt < now) return false;
-                } catch (e) {
-                  return false;
-                }
-              }
-              
-              return true;
-            });
+          // Filter only advertisements with isActive = true
+          const activeAds = res.data.filter(ad => ad.isActive === true);
           
           console.log("Total ads from API:", res.data.length);
           console.log("Active ads after filter:", activeAds.length);
@@ -287,9 +249,6 @@ export default function Home() {
                           <CardTitle className="text-base md:text-xl font-bold text-gray-900 mb-1 md:mb-2 line-clamp-1">
                             {item.name}
                           </CardTitle>
-                          <CardDescription className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3 leading-relaxed line-clamp-2">
-                            {item.description}
-                          </CardDescription>
                           <div className="flex items-center justify-between text-xs md:text-sm mb-1 md:mb-2">
                             <div className="flex items-center gap-1 text-amber-500">
                               <Star className="h-3 w-3 md:h-4 md:w-4 fill-amber-400 text-amber-400" />

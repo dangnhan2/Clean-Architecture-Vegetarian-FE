@@ -113,7 +113,9 @@ export const CreateFoodItem = (
     const formData = new FormData();
     formData.append("name", name);
     formData.append("categoryId", categoryId);
-    formData.append("description", description || "");
+    if (description !== null && description !== undefined) {
+        formData.append("description", description);
+    }
     formData.append("originalPrice", String(originalPrice));
     formData.append("discountPrice", String(discountPrice));
     formData.append("isAvailable", String(isAvailable));
@@ -141,7 +143,9 @@ export const EditFoodItem = (
     const formData = new FormData();
     formData.append("name", name);
     formData.append("categoryId", categoryId);
-    formData.append("description", description || "");
+    if (description !== null && description !== undefined) {
+        formData.append("description", description);
+    }
     formData.append("originalPrice", String(originalPrice));
     formData.append("discountPrice", String(discountPrice));
     formData.append("isAvailable", String(isAvailable));
@@ -222,6 +226,7 @@ export const RatingMenu = async (
     menuId: string,
     orderId: string,
     userId: string,
+    userName: string,
     stars: number,
     comment: string,
     images: File[]
@@ -230,6 +235,7 @@ export const RatingMenu = async (
     formData.append("menuId", menuId);
     formData.append("orderId", orderId);
     formData.append("userId", userId);
+    formData.append("userName", userName);
     formData.append("stars", String(stars));
     formData.append("comment", comment);
 
@@ -270,7 +276,7 @@ export const GetNotificationByAdmin = (adminId: string) => {
 }
 
 export const GetUnreadNotificationCount = (adminId: string) => {
-    return axios.get<IBackendRes<number>>(`/api/admin/notifications/unread-count?id=${adminId}`)
+    return axios.get<IBackendRes<IUnreadNotification>>(`/api/admin/notification/unread?id=${adminId}`)
 }
 
 export const DeleteNotification = (id : string) => {
@@ -282,7 +288,7 @@ export const MarkNotificationAsRead = (notificationIds: string[]) => {
 }
 
 export const SearchMenu = (keyword : string) => {
-    return axios.get<IBackendRes<ISearchMenuResponse[]>>(`/api/common/searching?Keyword=${keyword}`);
+    return axios.get<IBackendRes<ISearchMenuResponse[]>>(`/api/common/searching?keyword=${keyword}`);
 }
 
 export const GetAdvertisementsByAdmin = () => {
@@ -358,9 +364,6 @@ export const UpdateAdvertisement = (
     });
 }
 
-export const DeleteAdvertisement = (id: string) => {
-    return axios.delete<IBackendRes<null>>(`/api/admin/advertisement/${id}`);
-}
 
 export const ResponseRating = (userId : string, ratingId : string, comment : string) => {
     return axios.post<IBackendRes<null>>(`/api/admin/rating/responsing`, {userId, ratingId, comment});

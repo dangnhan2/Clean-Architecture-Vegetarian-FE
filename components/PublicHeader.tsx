@@ -22,8 +22,10 @@ const PublicHeader = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCartDropdownOpen, setIsCartDropdownOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const cartDropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
     let res = await Logout();
@@ -76,11 +78,18 @@ const PublicHeader = () => {
     }, 300);
   };
 
-  const handleItemClick = (menuId: string) => {
-    router.push(`/product/${menuId}`);
+  const handleItemClick = (menuId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    // Close dropdown immediately
+    setShowDropdown(false);
     setSearchTerm("");
     setSearchResults([]);
-    setShowDropdown(false);
+    // Navigate to product page immediately
+    const productUrl = `/product/${menuId}`;
+    router.push(productUrl);
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -97,13 +106,17 @@ const PublicHeader = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
+        // Use setTimeout to allow click events on dropdown items to process first
+        setTimeout(() => {
+          setShowDropdown(false);
+        }, 0);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    // Use click instead of mousedown to allow dropdown item clicks to process first
+    document.addEventListener("click", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     };
   }, []);
 
@@ -180,7 +193,10 @@ const PublicHeader = () => {
 
             {/* Search Results Dropdown */}
             {showDropdown && (
-              <Card className="absolute left-0 right-0 top-full z-50 mt-2 max-h-96 overflow-auto border-gray-200 shadow-lg">
+              <Card 
+                className="absolute left-0 right-0 top-full z-50 mt-2 max-h-96 overflow-auto border-gray-200 shadow-lg"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="p-2">
                   {isSearching ? (
                     <div className="p-4 text-center text-sm text-gray-500">
@@ -191,7 +207,7 @@ const PublicHeader = () => {
                       {searchResults.map((item) => (
                         <div
                           key={item.id}
-                          onClick={() => handleItemClick(item.id)}
+                          onClick={(e) => handleItemClick(item.id, e)}
                           className="flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors hover:bg-gray-100"
                         >
                           <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-md border">
@@ -248,7 +264,11 @@ const PublicHeader = () => {
             )}
 
             {/* Cart with hover preview */}
-            <div className="relative group">
+            <div 
+              className="relative"
+              onMouseEnter={() => setIsCartDropdownOpen(true)}
+              onMouseLeave={() => setIsCartDropdownOpen(false)}
+            >
               <Link href="/cart" className="relative inline-flex items-center justify-center h-10 w-10">
                 <FaShoppingCart
                   size={22}
@@ -261,8 +281,20 @@ const PublicHeader = () => {
                 ) : null}
               </Link>
               
+              {/* Invisible bridge to prevent gap issues */}
+              <div 
+                className="absolute right-0 top-full w-[420px] h-2 z-50"
+                onMouseEnter={() => setIsCartDropdownOpen(true)}
+              />
+              
               {/* Hover dropdown - hiển thị danh sách items */}
-              <div className="pointer-events-none absolute right-0 top-full mt-2 w-80 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100 sm:w-96 md:w-[420px] bg-white shadow-xl border border-gray-200 rounded-lg z-50">
+              {isCartDropdownOpen && (
+                <div 
+                  ref={cartDropdownRef}
+                  className="absolute right-0 top-full mt-2 w-80 sm:w-96 md:w-[420px] bg-white shadow-xl border border-gray-200 rounded-lg z-50"
+                  onMouseEnter={() => setIsCartDropdownOpen(true)}
+                  onMouseLeave={() => setIsCartDropdownOpen(false)}
+                >
                 <div className="p-4">
                   <h3 className="mb-3 text-lg font-bold text-gray-900">
                     Giỏ hàng của bạn
@@ -320,7 +352,8 @@ const PublicHeader = () => {
                     </Link>
                   </div>
                 )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Mobile menu toggle */}
@@ -362,7 +395,10 @@ const PublicHeader = () => {
 
           {/* Search Results Dropdown - Mobile */}
           {showDropdown && (
-            <Card className="absolute left-0 right-0 top-full z-50 mt-2 max-h-96 overflow-auto border-gray-200 shadow-lg">
+            <Card 
+              className="absolute left-0 right-0 top-full z-50 mt-2 max-h-96 overflow-auto border-gray-200 shadow-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="p-2">
                 {isSearching ? (
                   <div className="p-4 text-center text-sm text-gray-500">
@@ -373,7 +409,7 @@ const PublicHeader = () => {
                     {searchResults.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => handleItemClick(item.id)}
+                        onClick={(e) => handleItemClick(item.id, e)}
                         className="flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors hover:bg-gray-100"
                       >
                         <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-md border">

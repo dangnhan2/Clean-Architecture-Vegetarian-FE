@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Star, Tag } from "lucide-react";
-import { AddToCart, GetCategories, GetFoodItems } from "@/services/api";
+import { AddToCart, GetCategories, GetFoodItems, GetMenusOnSale } from "@/services/api";
 import PaginationControl from "@/components/common/PaginationControl";
 import { useAuth } from "@/context/context";
 import { toast } from "sonner";
@@ -72,7 +72,7 @@ export default function OnSalePage() {
       query += `${sortParam}`
     }
 
-    let res = await GetFoodItems(query);
+    let res = await GetMenusOnSale(query);
     if (res.isSuccess && Number(res.statusCode) === 200){
       if (res?.data){
         // Filter only items on sale
@@ -244,9 +244,6 @@ export default function OnSalePage() {
                             <CardTitle className="text-sm md:text-base lg:text-lg font-bold text-gray-900 mb-1 md:mb-1.5 line-clamp-1 md:line-clamp-2">
                               {item.name}
                             </CardTitle>
-                            <CardDescription className="text-xs md:text-sm text-gray-600 mb-1 md:mb-2 leading-relaxed line-clamp-2 hidden md:block">
-                              {item.description}
-                            </CardDescription>
                             <div className="flex items-center justify-between text-xs md:text-sm mt-1 md:mt-2">
                               <div className="flex items-center gap-0.5 md:gap-1 text-amber-500">
                                 <Star className="h-3 w-3 md:h-4 md:w-4 fill-amber-400 text-amber-400" />

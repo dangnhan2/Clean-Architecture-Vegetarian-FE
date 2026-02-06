@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Package, Copy, Check, Home, Receipt } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 const SuccessPage = () => {
@@ -18,6 +17,10 @@ const SuccessPage = () => {
     const [orderData, setOrderData] = useState<IOrderInfo | null>(null);
     const [cartItems, setCartItems] = useState<ICartItem[]>([]);
     const [copied, setCopied] = useState(false);
+
+    const totalAmount = useMemo(() => {
+        return cartItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+    }, [cartItems]);
 
     useEffect(() => {
         if (!orderCode) {
@@ -221,7 +224,7 @@ const SuccessPage = () => {
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm sm:text-base font-semibold">Tổng thanh toán</span>
                                                 <span className="text-lg sm:text-xl font-bold text-black">
-                                                    {formatCurrency(orderData.totalAmount)}
+                                                    {formatCurrency(totalAmount)}
                                                 </span>
                                             </div>
                                         </div>

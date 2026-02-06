@@ -14,11 +14,12 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Upload, X } from "lucide-react";
 import { EditFoodItem } from "@/services/api";
+import { convertDescriptionToHtmlString } from "@/lib/utils";
 
 const productSchema = z.object({
     name: z.string().min(1, {
@@ -72,7 +73,7 @@ const ProductEditingForm = ({ product, categories, onSuccess, onCancel }: Produc
         defaultValues: {
             name: product.name,
             category: getCategoryId(),
-            description: product.description || "",
+            description: convertDescriptionToHtmlString(product.description) || "",
             originalPrice: product.originalPrice,
             discountPrice: product.discountPrice || 0,
             thumbnail: undefined,
@@ -110,11 +111,34 @@ const ProductEditingForm = ({ product, categories, onSuccess, onCancel }: Produc
     }, [imagePreview]);
 
     const handleSubmit = async (values: ProductFormValues) => {
-        console.log(values);
+        console.log("Form values:", values);
+        console.log("Description value from form:", values.description);
         setIsSubmitting(true);
         try {
-            // Convert empty description to null/undefined
-            const description = values.description?.trim() || null;
+            // Get description from form values
+            let descriptionHtml = "";
+            if (typeof values.description === "string") {
+                descriptionHtml = values.description;
+            } else {
+                // If it's JsonElement, convert it
+                descriptionHtml = convertDescriptionToHtmlString(values.description);
+            }
+            
+            // Strip HTML tags to check if there's actual content
+            const stripHtml = (html: string) => {
+                const tmp = document.createElement("DIV");
+                tmp.innerHTML = html;
+                return tmp.textContent || tmp.innerText || "";
+            };
+            
+            // Check if description has actual content (not just empty tags)
+            const textContent = stripHtml(descriptionHtml);
+            const hasContent = textContent.trim().length > 0;
+            
+            // Send description as string HTML, or null if empty
+            const description = hasContent ? descriptionHtml.trim() : null;
+            
+            console.log("Final description to send:", description);
             
             // Gọi API EditFoodItem - chỉ gửi thumbnail nếu có
             const res = await EditFoodItem(
@@ -209,26 +233,6 @@ const ProductEditingForm = ({ product, categories, onSuccess, onCancel }: Produc
                                                 </svg>
                                             </div>
                                         </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Description Field */}
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Mô tả</FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder="Nhập mô tả món ăn (tùy chọn)"
-                                            className="bg-white min-h-[100px]"
-                                            {...field}
-                                            value={field.value || ""}
-                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -405,6 +409,27 @@ const ProductEditingForm = ({ product, categories, onSuccess, onCancel }: Produc
                             )}
                         />
                     </div>
+                </div>
+
+                {/* Description Field - Full Width */}
+                <div className="space-y-2">
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Mô tả</FormLabel>
+                                <FormControl>
+                                    <Textarea
+                                        placeholder="Nhập mô tả món ăn (tùy chọn)"
+                                        className="min-h-[260px] bg-white"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
 
                 {/* Action Buttons */}

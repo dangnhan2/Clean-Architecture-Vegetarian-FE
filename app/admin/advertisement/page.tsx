@@ -5,10 +5,9 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Eye, Pencil, Trash2 } from "lucide-react";
-import { GetAdvertisementsByAdmin, DeleteAdvertisement } from "@/services/api";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Eye, Pencil } from "lucide-react";
+import { GetAdvertisementsByAdmin } from "@/services/api";
 import { toast } from "sonner";
 import AdvertisementCreatingForm from "@/components/admin/advertisement/AdvertisementCreatingForm";
 import AdvertisementEditingForm from "@/components/admin/advertisement/AdvertisementEditingForm";
@@ -21,9 +20,6 @@ export default function AdvertisementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [advertisementToEdit, setAdvertisementToEdit] = useState<IAdvertisement | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [advertisementToDelete, setAdvertisementToDelete] = useState<IAdvertisement | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchAdvertisements = async () => {
     setIsLoading(true);
@@ -88,41 +84,6 @@ export default function AdvertisementPage() {
       month: "2-digit",
       year: "numeric",
     });
-  };
-
-  const handleDeleteClick = (advertisement: IAdvertisement) => {
-    setAdvertisementToDelete(advertisement);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!advertisementToDelete) return;
-
-    setIsDeleting(true);
-    try {
-      const res = await DeleteAdvertisement(advertisementToDelete.id);
-      if (res.isSuccess && Number(res.statusCode) === 200) {
-        toast.success("Xóa quảng cáo thành công");
-        setIsDeleteDialogOpen(false);
-        setAdvertisementToDelete(null);
-        // Refresh danh sách
-        await fetchAdvertisements();
-      } else {
-        const errorMessage = typeof res.message === 'string' ? res.message : "Không thể xóa quảng cáo";
-        toast.error(errorMessage);
-      }
-    } catch (error: any) {
-      console.error("Error deleting advertisement:", error);
-      const errorMessage = error?.response?.data?.message || error?.message || "Có lỗi xảy ra khi xóa quảng cáo";
-      toast.error(typeof errorMessage === 'string' ? errorMessage : "Có lỗi xảy ra khi xóa quảng cáo");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleDeleteCancel = () => {
-    setIsDeleteDialogOpen(false);
-    setAdvertisementToDelete(null);
   };
 
 
@@ -214,10 +175,7 @@ export default function AdvertisementPage() {
                       <div className="flex flex-col gap-1 text-xs text-gray-600">
                         <div>
                           <span className="font-medium">Bắt đầu:</span> {formatDate(ad.startAt)}
-                        </div>
-                        <div>
-                          <span className="font-medium">Kết thúc:</span> {formatDate(ad.endAt)}
-                        </div>
+                        </div>                      
                       </div>
                       <div className="flex items-center gap-2 justify-end">                      
                         <Button 
@@ -230,15 +188,6 @@ export default function AdvertisementPage() {
                           }}
                         >
                           <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm" 
-                          className="bg-red-500 hover:bg-red-600"
-                          onClick={() => handleDeleteClick(ad)}
-                          disabled={isDeleting}
-                        >
-                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -282,15 +231,6 @@ export default function AdvertisementPage() {
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
-                              <Button 
-                                variant="destructive" 
-                                size="sm" 
-                                className="h-8 w-8 p-0 bg-red-500 hover:bg-red-600"
-                                onClick={() => handleDeleteClick(ad)}
-                                disabled={isDeleting}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-2">
@@ -312,10 +252,7 @@ export default function AdvertisementPage() {
                           <div className="flex flex-col gap-1 pt-1">
                             <div className="text-xs text-gray-600">
                               <span className="font-medium">Bắt đầu:</span> {formatDate(ad.startAt)}
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              <span className="font-medium">Kết thúc:</span> {formatDate(ad.endAt)}
-                            </div>
+                            </div>                           
                           </div>
                         </div>
                       </div>
@@ -377,34 +314,6 @@ export default function AdvertisementPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Xác nhận xóa quảng cáo</DialogTitle>
-              <DialogDescription>
-                Bạn có chắc chắn muốn xóa quảng cáo <strong>{advertisementToDelete?.title}</strong>? Hành động này không thể hoàn tác.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={handleDeleteCancel}
-                disabled={isDeleting}
-              >
-                Hủy
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteConfirm}
-                disabled={isDeleting}
-                className="bg-red-500 hover:bg-red-600"
-              >
-                {isDeleting ? "Đang xóa..." : "Xóa"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

@@ -1,30 +1,50 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+"use client";
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+import React from "react";
+
+type JsonElement = string | number | boolean | null | JsonElement[] | { [key: string]: JsonElement };
+
+interface DescriptionRendererProps {
+  description: string | JsonElement | null | undefined;
+  className?: string;
+  maxLength?: number;
 }
 
 /**
- * Converts JsonElement description to HTML string
- * This ensures description is always sent as string HTML to API
+ * Renders description that can be either a string (HTML) or JsonElement
+ * If it's a JsonElement, it extracts HTML content from it
  */
-export function convertDescriptionToHtmlString(description: string | JsonElement | null | undefined): string {
+export const DescriptionRenderer: React.FC<DescriptionRendererProps> = ({
+  description,
+  className = "",
+  maxLength,
+}) => {
   if (!description) {
-    return "";
+    return null;
   }
 
-  // If already a string (HTML), return it
+  // If description is already a string (HTML), render it directly
   if (typeof description === "string") {
-    return description;
+    const content = maxLength && description.length > maxLength 
+      ? description.substring(0, maxLength) + "..." 
+      : description;
+    
+    return (
+      <div
+        className={className}
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    );
   }
 
-  // If it's a JsonElement (object), convert it to HTML string
+  // If description is a JsonElement (object), try to extract HTML
   if (typeof description === "object" && description !== null) {
     let htmlContent = "";
 
     // Try to find HTML content in the object
+    // Common Delta format: { ops: [...] } or { html: "..." } or direct HTML string in object
     if (Array.isArray(description)) {
+      // If it's an array, try to find HTML in it
       const htmlItem = description.find((item) => typeof item === "string" && item.includes("<"));
       if (htmlItem) {
         htmlContent = htmlItem as string;
@@ -35,10 +55,11 @@ export function convertDescriptionToHtmlString(description: string | JsonElement
       // Delta format - convert ops to HTML
       htmlContent = convertDeltaToHtml(description.ops);
     } else if ("delta" in description && typeof description.delta === "object" && description.delta !== null) {
+      // Nested delta
       const delta = description.delta as { ops?: any[] };
       if (delta && Array.isArray(delta.ops)) {
         htmlContent = convertDeltaToHtml(delta.ops);
-}
+      }
     } else {
       // Try to find any string value that looks like HTML
       const findHtmlInObject = (obj: any): string => {
@@ -62,14 +83,34 @@ export function convertDescriptionToHtmlString(description: string | JsonElement
       htmlContent = findHtmlInObject(description);
     }
 
-    return htmlContent;
+    if (htmlContent) {
+      const content = maxLength && htmlContent.length > maxLength 
+        ? htmlContent.substring(0, maxLength) + "..." 
+        : htmlContent;
+      
+      return (
+        <div
+          className={className}
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      );
+    }
+
+    // If no HTML found, try to render as plain text
+    const textContent = JSON.stringify(description);
+    const displayText = maxLength && textContent.length > maxLength 
+      ? textContent.substring(0, maxLength) + "..." 
+      : textContent;
+    
+    return <div className={className}>{displayText}</div>;
   }
 
-  return "";
-}
+  return null;
+};
 
 /**
  * Simple Delta to HTML converter
+ * This is a basic implementation - for production, consider using quill-delta-to-html
  */
 function convertDeltaToHtml(ops: any[]): string {
   let html = "";
@@ -119,3 +160,4 @@ function convertDeltaToHtml(ops: any[]): string {
   
   return html;
 }
+

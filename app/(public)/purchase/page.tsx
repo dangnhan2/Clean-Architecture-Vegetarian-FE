@@ -157,6 +157,7 @@ const OrderHistoryPage = () => {
         selectedItem.menuId,
         selectedOrderId,
         user.id,
+        user.userName,
         reviewStars,
         reviewComment,
         reviewImages
@@ -224,7 +225,7 @@ const OrderHistoryPage = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <h2 className="text-lg font-semibold text-gray-900">
-                              Đơn hàng #{order.transactionCode}
+                              Đơn hàng #{order.orderCode}
                             </h2>
                             <Badge
                               variant={status.variant}

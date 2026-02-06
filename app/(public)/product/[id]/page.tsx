@@ -6,12 +6,13 @@ import Image from "next/image";
 import { ChevronLeft, Plus, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductReviewsSection } from "@/components/product/reviews";
 import { GetFoodItemById, AddToCart, GetRecommendedFoodItems } from "@/services/api";
 import { useAuth } from "@/context/context";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { DescriptionRenderer } from "@/components/common/DescriptionRenderer";
 
 const ProductDetailPage = () => {
   const params = useParams();
@@ -172,9 +173,9 @@ const ProductDetailPage = () => {
                 {/* Description Section */}
                 <div className="space-y-2">
                   <h2 className="text-base md:text-lg font-bold text-gray-900">Mô tả</h2>
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    {product?.description || ""}
-                  </p>
+                  <div className="text-sm md:text-base text-gray-700 leading-relaxed">
+                    <DescriptionRenderer description={product?.description} />
+                  </div>
                 </div>
 
                 {/* Category Section */}
@@ -298,9 +299,6 @@ const ProductDetailPage = () => {
                     <CardTitle className="text-sm md:text-base lg:text-lg font-bold text-gray-900 mb-1 md:mb-2 line-clamp-1">
                       {item.name || ""}
                     </CardTitle>
-                    <CardDescription className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3 leading-relaxed line-clamp-2 hidden md:block">
-                      {item.description || ""}
-                    </CardDescription>
                     <div className="flex items-center justify-between text-xs md:text-sm mb-1">
                       <div className="flex items-center gap-0.5 md:gap-1 text-amber-500">
                         <Star className="h-3 w-3 md:h-4 md:w-4 fill-amber-400 text-amber-400" />

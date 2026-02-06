@@ -226,10 +226,9 @@ const AdminProductsPage = () => {
 
                     <CardContent className="p-0">
                         {/* Desktop Table Header - Hidden on mobile */}
-                        <div className="hidden lg:grid grid-cols-[1.2fr_2fr_2.4fr_1.1fr_1fr_0.9fr_1.4fr] gap-3 px-4 py-3 text-sm font-semibold text-gray-500 border-b bg-white">
+                        <div className="hidden lg:grid grid-cols-[1.2fr_2.8fr_1.1fr_1fr_0.9fr_1.4fr] gap-3 px-4 py-3 text-sm font-semibold text-gray-500 border-b bg-white">
                             <span className="text-left">Hình ảnh</span>
                             <span className="text-left">Tên món</span>
-                            <span className="text-left">Mô tả</span>
                             <span className="text-center">Danh mục</span>
                             <span className="text-right">Giá</span>
                             <span className="text-right">Đã bán</span>
@@ -242,7 +241,7 @@ const AdminProductsPage = () => {
                                     <div key={item.id}>
                                         {/* Desktop Table Row */}
                                         <div
-                                            className="hidden lg:grid grid-cols-[1.2fr_2fr_2.4fr_1.1fr_1fr_0.9fr_1.4fr] gap-3 px-4 py-4 items-center bg-white hover:bg-gray-50 transition-colors"
+                                            className="hidden lg:grid grid-cols-[1.2fr_2.8fr_1.1fr_1fr_0.9fr_1.4fr] gap-3 px-4 py-4 items-center bg-white hover:bg-gray-50 transition-colors"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className="relative h-16 w-20 overflow-hidden rounded-lg border">
@@ -263,7 +262,6 @@ const AdminProductsPage = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-gray-700 line-clamp-2">{item.description}</p>
                                             <div className="flex items-center justify-center">
                                                 <Badge variant="outline" className="border-purple-200 text-purple-700 bg-purple-50">{item.category}</Badge>
                                             </div>
@@ -355,9 +353,6 @@ const AdminProductsPage = () => {
                                                         )}
                                                         <Badge variant="outline" className="border-purple-200 text-purple-700 bg-purple-50 text-xs">{item.category}</Badge>
                                                     </div>
-                                                    {item.description && (
-                                                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{item.description}</p>
-                                                    )}
                                                     <div className="flex items-center justify-between gap-2 pt-1">
                                                         <div className="flex flex-col">
                                                             <span className="text-xs text-gray-500">Giá</span>

@@ -1,5 +1,4 @@
 import axios from "axios";
-import { RefreshToken } from "./api";
 
 const instance = axios.create({
   baseURL: "https://localhost:8081",
@@ -10,6 +9,19 @@ export const refreshClient = axios.create({
   baseURL: "https://localhost:8081",
   withCredentials: true,
 });
+
+// Gắn Bearer token cho các request refresh token
+refreshClient.interceptors.request.use(
+  (config) => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    if (token && config.headers) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (config.headers as any).Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 let isRefreshing = false;
 let failedQueue: any[] = [];
@@ -24,8 +36,11 @@ const processQueue = (error: any, token: string | null = null) => {
 
 instance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("access_token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    if (token && config.headers) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (config.headers as any).Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -39,8 +54,10 @@ instance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     const isLoginRequest = originalRequest.url?.includes("/api/auth/login");
+    const isRefreshRequest = originalRequest.url?.includes("/api/auth/refresh");
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
+    // Không trigger refresh lại cho chính request refresh token hoặc login
+    if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest && !isRefreshRequest) {
       if (isRefreshing) {
         // Nếu đang refresh → chờ refresh xong rồi retry
         return new Promise(function (resolve, reject) {
@@ -59,9 +76,11 @@ instance.interceptors.response.use(
       try {
         console.log("Refreshing access token...");
 
-        const res = await RefreshToken();
+        // Gọi thẳng refreshClient, không dùng instance để tránh interceptor & Bearer
+        const refreshRes = await refreshClient.post(`/api/auth/refresh`);
+        const res = refreshRes.data as IBackendRes<IAuthResponse>;
 
-        if (res.isSuccess === false) throw new Error("Failed to refresh token");
+        if (!res || res.isSuccess === false) throw new Error("Failed to refresh token");
         
         const newToken = res.data?.accessToken
         if (newToken) {

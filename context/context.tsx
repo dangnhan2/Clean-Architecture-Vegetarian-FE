@@ -25,10 +25,20 @@ export const AuthProvider = ({children} : {children: React.ReactNode}) => {
     const [cart, setCart] = useState<ICart>();
 
     useEffect(() => {
-      if (typeof window !== "undefined") {
-        const token = localStorage.getItem("access_token");
-        if (token) setAccessToken(token);
+      if (typeof window === "undefined") return;
+
+      // Khi F5 / reload: luôn bootstrap auth từ localStorage và gọi refresh token (nếu có access_token)
+      const token = localStorage.getItem("access_token");
+      if (token) {
+        setAccessToken(token);
+        // Chủ động refresh ngay khi reload để lấy access token mới (backend yêu cầu Bearer)
+        refresh();
+      } else {
+        setAccessToken(undefined);
+        setUser(undefined);
+        setIsAuthen(false);
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     
     const fetchCart = async () => {
@@ -58,6 +68,12 @@ export const AuthProvider = ({children} : {children: React.ReactNode}) => {
               setAccessToken(access_token);
             }
             setIsAuthen(true);
+        } else {
+          // Refresh thất bại nhưng không throw (interceptor có thể wrap response) → clear auth state
+          setUser(undefined);
+          setAccessToken(undefined);
+          localStorage.removeItem("access_token");
+          setIsAuthen(false);
         }
        }catch(err){
         console.error("Refresh token failed:", err);
@@ -67,10 +83,6 @@ export const AuthProvider = ({children} : {children: React.ReactNode}) => {
         setIsAuthen(false);
        }
     }
-
-    useEffect(() => {
-       refresh()
-    }, []);
 
 
     useEffect(() => {

@@ -44,11 +44,13 @@ declare global {
         name: string
     }
 
+    type JsonElement = string | number | boolean | null | JsonElement[] | { [key: string]: JsonElement };
+
     interface IFoodItem {
         id: string
         name: string
         category: string
-        description: string
+        description: string | JsonElement
         originalPrice: number
         discountPrice: number
         averageRating: number
@@ -118,7 +120,7 @@ declare global {
         note : string
         orderStatus : number
         totalAmount : number
-        transactionCode : number
+        orderCode : number
         paymentMethod : string
         menus : IItemHistory[] 
     }
@@ -184,6 +186,12 @@ declare global {
         createdAt : string
     }
 
+    interface IUnreadNotification{
+        total : number,
+        unreadNotifications : INotification[]
+
+    }
+
     interface ISearchMenuResponse {
         id : string
         name : string
@@ -199,7 +207,6 @@ declare global {
         targetKey : string
         isActive : boolean
         startAt : string
-        endAt : string | null
     }
 }
 

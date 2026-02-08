@@ -118,7 +118,7 @@ export default function VerifyEmailPage() {
       setIsResending(true)
       const res = await ResendEmail(emailParam)
       
-      if (res?.isSuccess && Number(res.statusCode) === 200) {
+      if (res?.isSuccess && Number(res.statusCode) === 201) {
         toast.success(res.message || "Đã gửi lại mã xác nhận thành công")
         setCountdown(60) // Set countdown to 60 seconds
       } else {

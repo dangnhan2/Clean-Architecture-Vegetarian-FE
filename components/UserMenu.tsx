@@ -8,20 +8,31 @@ interface UserMenuProps {
   avatarUrl?: string;
   onLogout: () => void;
   isAdminPage?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-const UserMenu = ({ fullName, avatarUrl, onLogout, isAdminPage = false }: UserMenuProps) => {
+const UserMenu = ({ fullName, avatarUrl, onLogout, isAdminPage = false, onOpenChange }: UserMenuProps) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+
+  const setMenuOpen = (value: boolean) => {
+    setOpen(value);
+    onOpenChange?.(value);
+  };
+
+  const handleToggleClick = () => {
+    setMenuOpen(!open);
+  };
 
   return (
     <div
       className="relative"
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={() => setMenuOpen(true)}
+      onMouseLeave={() => setMenuOpen(false)}
     >
       <div
         className="flex items-center gap-2 cursor-pointer"
-        onMouseEnter={() => setOpen(true)}
+        onClick={handleToggleClick}
       >
         <UserAvatar avatar={avatarUrl} />
         {fullName && (
@@ -31,15 +42,16 @@ const UserMenu = ({ fullName, avatarUrl, onLogout, isAdminPage = false }: UserMe
 
       {open && (
         <>
-          {/* Hover bridge to avoid gap between trigger and menu */}
+          {/* Hover bridge để không bị mất dropdown khi di chuyển chuột */}
           <div
-            className="absolute right-0 top-full h-2 w-56"
-            onMouseEnter={() => setOpen(true)}
+            className="absolute left-0 right-0 top-full h-4 z-50"
+            onMouseEnter={() => setMenuOpen(true)}
             aria-hidden
           />
           <div
-            className="absolute right-0 top-[calc(100%+8px)] w-56 rounded-md border bg-white shadow-md z-50"
-            onMouseEnter={() => setOpen(true)}
+            className="absolute right-0 top-full mt-2 w-56 rounded-md border bg-white shadow-md z-50"
+            onMouseEnter={() => setMenuOpen(true)}
+            onMouseLeave={() => setMenuOpen(false)}
           > 
             <Link
               href="/account/profile"

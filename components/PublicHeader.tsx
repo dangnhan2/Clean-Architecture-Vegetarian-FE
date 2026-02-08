@@ -23,6 +23,7 @@ const PublicHeader = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartDropdownOpen, setIsCartDropdownOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const cartDropdownRef = useRef<HTMLDivElement>(null);
@@ -251,6 +252,7 @@ const PublicHeader = () => {
                 fullName={user?.userName}
                 avatarUrl={user?.imageUrl}
                 onLogout={handleLogout}
+                onOpenChange={setIsUserMenuOpen}
               />
             ) : (
               <Link href="/auth/login">
@@ -266,7 +268,11 @@ const PublicHeader = () => {
             {/* Cart with hover preview */}
             <div 
               className="relative"
-              onMouseEnter={() => setIsCartDropdownOpen(true)}
+              onMouseEnter={() => {
+                if (!isUserMenuOpen) {
+                  setIsCartDropdownOpen(true);
+                }
+              }}
               onMouseLeave={() => setIsCartDropdownOpen(false)}
             >
               <Link href="/cart" className="relative inline-flex items-center justify-center h-10 w-10">
@@ -284,7 +290,11 @@ const PublicHeader = () => {
               {/* Invisible bridge to prevent gap issues */}
               <div 
                 className="absolute right-0 top-full w-[420px] h-2 z-50"
-                onMouseEnter={() => setIsCartDropdownOpen(true)}
+                onMouseEnter={() => {
+                  if (!isUserMenuOpen) {
+                    setIsCartDropdownOpen(true);
+                  }
+                }}
               />
               
               {/* Hover dropdown - hiển thị danh sách items */}

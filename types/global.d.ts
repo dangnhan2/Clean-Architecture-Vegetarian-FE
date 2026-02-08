@@ -35,8 +35,11 @@ declare global {
     interface IAddress {
         id: string
         address: string
-        fullName?: string
-        phoneNumber?: string
+        fullName: string
+        phoneNumber: string
+        province: string
+        district: string
+        isDefault: boolean
     }
 
     interface ICategory {
@@ -208,6 +211,45 @@ declare global {
         isActive : boolean
         startAt : string
     }
+
+    interface IProvince {
+        error : number,
+        error_text : string,
+        data_name : string,
+        data : IProvinceData[]
+    }
+
+    interface IProvinceData {
+      id : string,
+      code : string,
+      name : string,
+      name_en : string,
+      full_name : string,
+      full_name_en : string,
+      latitude : string,
+      longitude : string
+    }
+
+    interface IDistrict {
+        error : number,
+        error_text : string,
+        data_id : string,
+        data_code : string,
+        data_name : string,
+        data : IDistrictData[] 
+    }
+
+    interface IDistrictData {
+        id: string,
+        code : string,
+        name : string,
+        name_en : string,
+       full_name : string,
+      full_name_en : string,
+      latitude : string,
+      longitude : string
+    }
+        
 }
 
 

@@ -1,8 +1,9 @@
-import axios from './interceptor';
+import axios, { cookieOnlyClient } from './interceptor';
 
 export const Login = (email : string, password : string) => {
    return axios.post<IBackendRes<IAuthResponse>>(`/api/auth/login`, {email, password});
 }
+
 
 export const Register = (email: string, userName : string, password : string, confirmPassword : string) => {
     return axios.post<IBackendRes<string>>(`/api/auth/register`, {email,userName, password, confirmPassword});
@@ -40,16 +41,53 @@ export const GetAddresses = (id : string) => {
     return axios.get<IBackendRes<IAddress[]>>(`/api/common/user/${id}/addresses`);
 }
 
-export const AddAddress = (userId : string, address : string, fullName : string, phoneNumber : string) => {
-    return axios.post<IBackendRes<null>>(`/api/common/address`, {userId, address, fullName, phoneNumber});
+export const AddAddress = (
+    userId : string,
+    address : string,
+    fullName : string,
+    phoneNumber : string,
+    province: string,
+    district: string,
+    isDefault: boolean
+) => {
+    return axios.post<IBackendRes<null>>(`/api/common/address`, {
+        userId,
+        address,
+        fullName,
+        phoneNumber,
+        province,
+        district,
+        isDefault,
+    });
 }
 
-export const UpdateAddress = (id : string, userId : string, address : string, fullName : string, phoneNumber : string) => {
-    return axios.put<IBackendRes<null>>(`/api/common/address/${id}`, {userId, address, fullName, phoneNumber});
+export const UpdateAddress = (
+    id : string,
+    userId : string,
+    address : string,
+    fullName : string,
+    phoneNumber : string,
+    province: string,
+    district: string,
+    isDefault: boolean
+) => {
+    return axios.put<IBackendRes<null>>(`/api/common/address/${id}`, {
+        userId,
+        address,
+        fullName,
+        phoneNumber,
+        province,
+        district,
+        isDefault,
+    });
 }
 
 export const DeleteAddress = (id : string) => {
     return axios.delete<IBackendRes<null>>(`/api/common/address/${id}`);
+}
+
+export const SetAddressDefault = (id : string) => {
+    return axios.put<IBackendRes<null>>(`/api/common/address/default/${id}`);
 }
 
 export const UpdateProfile = (id : string | undefined, phoneNumber : string, avatar : File | undefined) => {

@@ -4,16 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/context/context";
 import UserAvatar from "@/components/UserAvatar";
 import { Trash2, MapPin, Edit2, Phone, User } from "lucide-react";
-import { ChangePassword, DeleteAddress, GetAddresses, UpdateProfile, AddAddress, UpdateAddress } from "@/services/api";
+import { ChangePassword, DeleteAddress, GetAddresses, UpdateProfile, AddAddress, UpdateAddress, SetAddressDefault } from "@/services/api";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { GetProvinces, GetDistricts } from "@/services/external_api";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const TABS = ["Thông tin cá nhân", "Địa chỉ", "Bảo mật"] as const;
 type TabKey = typeof TABS[number];
@@ -28,6 +30,7 @@ const ProfilePage = () => {
   const [addressToDelete, setAddressToDelete] = useState<IAddress | null>(null);
   const [isUpdateAddressOpen, setIsUpdateAddressOpen] = useState(false);
   const [addressToUpdate, setAddressToUpdate] = useState<IAddress | null>(null);
+  const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
 
   const storageKey = "profileActiveTab";
 
@@ -46,32 +49,101 @@ const ProfilePage = () => {
   type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
   type ProfileValues = z.infer<typeof profileSchema>;
 
-  // Schema thêm địa chỉ
+  // Schema thêm / sửa địa chỉ theo request body mới
   const addressSchema = z.object({
-    address: z.string().min(5, "Địa chỉ phải có ít nhất 5 ký tự"),
     fullName: z.string().min(2, "Họ và tên phải có ít nhất 2 ký tự"),
     phoneNumber: z.string().min(10, "Số điện thoại phải có ít nhất 10 số"),
+    provinceId: z.string().min(1, "Vui lòng chọn Tỉnh/Thành phố"),
+    districtId: z.string().min(1, "Vui lòng chọn Quận/Huyện"),
+    address: z.string().min(5, "Địa chỉ chi tiết phải có ít nhất 5 ký tự"),
+    isDefault: z.boolean().default(false),
   });
 
-  type AddressValues = z.infer<typeof addressSchema>;
+  interface AddressValues {
+    fullName: string;
+    phoneNumber: string;
+    provinceId: string;
+    districtId: string;
+    address: string;
+    isDefault: boolean;
+  }
 
   const addressForm = useForm<AddressValues>({
-    resolver: zodResolver(addressSchema),
+    resolver: zodResolver(addressSchema) as any,
     defaultValues: {
-      address: "",
       fullName: "",
       phoneNumber: "",
+      provinceId: "",
+      districtId: "",
+      address: "",
+      isDefault: false,
     },
   });
 
   const updateAddressForm = useForm<AddressValues>({
-    resolver: zodResolver(addressSchema),
+    resolver: zodResolver(addressSchema) as any,
     defaultValues: {
-      address: "",
       fullName: "",
       phoneNumber: "",
+      provinceId: "",
+      districtId: "",
+      address: "",
+      isDefault: false,
     },
   });
+
+  const addProvinceId = useWatch({ control: addressForm.control, name: "provinceId" });
+  const updateProvinceId = useWatch({ control: updateAddressForm.control, name: "provinceId" });
+
+  const [provinces, setProvinces] = useState<IProvinceData[]>([]);
+  const [isProvincesLoading, setIsProvincesLoading] = useState(false);
+  const [districtsForAdd, setDistrictsForAdd] = useState<IDistrictData[]>([]);
+  const [districtsForUpdate, setDistrictsForUpdate] = useState<IDistrictData[]>([]);
+  const [isDistrictsAddLoading, setIsDistrictsAddLoading] = useState(false);
+  const [isDistrictsUpdateLoading, setIsDistrictsUpdateLoading] = useState(false);
+
+  const fetchProvinces = async () => {
+    if (provinces.length > 0) return;
+    setIsProvincesLoading(true);
+    try {
+      const res = await GetProvinces();
+      const payload = res.data as unknown as IProvince;
+      if (payload?.error === 0) {
+        setProvinces(payload.data || []);
+      } else {
+        toast.error(payload?.error_text || "Không thể tải danh sách tỉnh/thành phố");
+      }
+    } catch (error) {
+      console.error("GetProvinces error:", error);
+      toast.error("Không thể tải danh sách tỉnh/thành phố");
+    } finally {
+      setIsProvincesLoading(false);
+    }
+  };
+
+  const fetchDistricts = async (provinceId: string, mode: "add" | "update") => {
+    if (!provinceId) return;
+    if (mode === "add") setIsDistrictsAddLoading(true);
+    else setIsDistrictsUpdateLoading(true);
+
+    try {
+      const res = await GetDistricts(provinceId);
+      const payload = res.data as unknown as IDistrict;
+      if (payload?.error === 0) {
+        const list = payload.data || [];
+        if (mode === "add") setDistrictsForAdd(list);
+        else setDistrictsForUpdate(list);
+      } else {
+        toast.error(payload?.error_text || "Không thể tải danh sách quận/huyện");
+      }
+    } catch (error) {
+      console.error("GetDistricts error:", error);
+      toast.error("Không thể tải danh sách quận/huyện");
+    } finally {
+      if (mode === "add") setIsDistrictsAddLoading(false);
+      else setIsDistrictsUpdateLoading(false);
+    }
+  };
 
   const changePasswordForm = useForm<ChangePasswordValues>({
     resolver: zodResolver(changePasswordSchema),
@@ -115,6 +187,25 @@ const ProfilePage = () => {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleSetDefaultAddress = async (address: IAddress) => {
+    if (!address.id || address.isDefault) return;
+    setIsSettingDefault(address.id);
+    try {
+      const res = await SetAddressDefault(address.id);
+      if (res.isSuccess && Number(res.statusCode) === 200) {
+        toast.success(res.message || "Đã thiết lập địa chỉ mặc định");
+        await fetchAddress();
+      } else {
+        toast.error(res.message || "Không thể thiết lập địa chỉ mặc định");
+      }
+    } catch (error) {
+      console.error("SetAddressDefault error:", error);
+      toast.error("Không thể thiết lập địa chỉ mặc định");
+    } finally {
+      setIsSettingDefault(null);
+    }
+  };
+
   const handleDeleteConfirm = async () => {
     if (!addressToDelete?.id) return;
     
@@ -131,7 +222,24 @@ const ProfilePage = () => {
 
   const handleAddAddress = async (values: AddressValues) => {
     if (user?.id){
-      let res = await AddAddress(user.id, values.address, values.fullName, values.phoneNumber);
+      const provinceName =
+        provinces.find((p) => p.id === values.provinceId)?.full_name ||
+        provinces.find((p) => p.id === values.provinceId)?.name ||
+        "";
+      const districtName =
+        districtsForAdd.find((d) => d.id === values.districtId)?.full_name ||
+        districtsForAdd.find((d) => d.id === values.districtId)?.name ||
+        "";
+
+      let res = await AddAddress(
+        user.id,
+        values.address,
+        values.fullName,
+        values.phoneNumber,
+        provinceName,
+        districtName,
+        values.isDefault
+      );
       if (res.isSuccess && Number(res.statusCode) === 201) {
         toast.success(res.message);
         await fetchAddress();
@@ -145,16 +253,37 @@ const ProfilePage = () => {
   const handleUpdateClick = (address: IAddress) => {
     setAddressToUpdate(address);
     updateAddressForm.reset({ 
-      address: address.address,
       fullName: address.fullName || "",
       phoneNumber: address.phoneNumber || "",
+      provinceId: "",
+      districtId: "",
+      address: address.address,
+      isDefault: address.isDefault ?? false,
     });
     setIsUpdateAddressOpen(true);
   };
 
   const handleUpdateAddress = async (values: AddressValues) => {
     if (addressToUpdate?.id && user?.id) {
-      let res = await UpdateAddress(addressToUpdate.id, user.id, values.address, values.fullName, values.phoneNumber);
+      const provinceName =
+        provinces.find((p) => p.id === values.provinceId)?.full_name ||
+        provinces.find((p) => p.id === values.provinceId)?.name ||
+        "";
+      const districtName =
+        districtsForUpdate.find((d) => d.id === values.districtId)?.full_name ||
+        districtsForUpdate.find((d) => d.id === values.districtId)?.name ||
+        "";
+
+      let res = await UpdateAddress(
+        addressToUpdate.id,
+        user.id,
+        values.address,
+        values.fullName,
+        values.phoneNumber,
+        provinceName,
+        districtName,
+        values.isDefault
+      );
       if (res.isSuccess && Number(res.statusCode) === 200) {
         toast.success(res.message);
         fetchAddress();
@@ -170,7 +299,7 @@ const ProfilePage = () => {
   const onSubmit = async (values: ChangePasswordValues) => {
     let res = await ChangePassword(user?.id, values.currentPassword, values.newPassword, values.confirmPassword);
 
-    if (res?.isSuccess && Number(res.statusCode) === 200) {
+    if (res?.isSuccess && Number(res.statusCode) === 201) {
       toast.success(res.message);
     } else {
       toast.error(res.message);
@@ -229,14 +358,73 @@ const ProfilePage = () => {
   // Reset form khi mở dialog thêm địa chỉ
   useEffect(() => {
     if (isAddAddressOpen) {
+      fetchProvinces();
+      setDistrictsForAdd([]);
       addressForm.reset({
-        address: "",
         fullName: "",
         phoneNumber: "",
+        provinceId: "",
+        districtId: "",
+        address: "",
+        isDefault: false,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAddAddressOpen]);
+
+  // Load districts when province changes (Add)
+  useEffect(() => {
+    if (!isAddAddressOpen) return;
+    if (addProvinceId) {
+      addressForm.setValue("districtId", "");
+      fetchDistricts(addProvinceId, "add");
+    } else {
+      setDistrictsForAdd([]);
+    }
+  }, [isAddAddressOpen, addProvinceId]);
+
+  // When update dialog opens: fetch provinces and map existing province/district name -> ids
+  useEffect(() => {
+    if (!isUpdateAddressOpen) return;
+    fetchProvinces();
+  }, [isUpdateAddressOpen]);
+
+  useEffect(() => {
+    if (!isUpdateAddressOpen || !addressToUpdate || provinces.length === 0) return;
+
+    const matchedProvince =
+      provinces.find((p) => p.full_name === addressToUpdate.province) ||
+      provinces.find((p) => p.name === addressToUpdate.province);
+
+    if (matchedProvince) {
+      updateAddressForm.setValue("provinceId", matchedProvince.id);
+      updateAddressForm.setValue("districtId", "");
+      fetchDistricts(matchedProvince.id, "update");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isUpdateAddressOpen, addressToUpdate?.province, provinces.length]);
+
+  useEffect(() => {
+    if (!isUpdateAddressOpen || !addressToUpdate) return;
+    if (updateProvinceId) {
+      // if user manually changes province, reload districts
+      fetchDistricts(updateProvinceId, "update");
+    }
+  }, [isUpdateAddressOpen, updateProvinceId]);
+
+  useEffect(() => {
+    if (!isUpdateAddressOpen || !addressToUpdate) return;
+    if (districtsForUpdate.length === 0) return;
+
+    const matchedDistrict =
+      districtsForUpdate.find((d) => d.full_name === addressToUpdate.district) ||
+      districtsForUpdate.find((d) => d.name === addressToUpdate.district);
+
+    if (matchedDistrict) {
+      updateAddressForm.setValue("districtId", matchedDistrict.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isUpdateAddressOpen, addressToUpdate?.district, districtsForUpdate.length]);
 
   // Cleanup preview URL khi component unmount
   useEffect(() => {
@@ -446,8 +634,91 @@ const ProfilePage = () => {
                           <FormItem>
                             <FormLabel>Địa chỉ</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ví dụ: 123 Đường ABC, Phường XYZ, Quận 1, TP.HCM" {...field} />
+                              <Input placeholder="Số nhà, tên đường..." {...field} />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <FormField
+                          control={addressForm.control}
+                          name="provinceId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tỉnh / Thành phố</FormLabel>
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={isProvincesLoading ? "Đang tải..." : "Chọn tỉnh/thành phố"} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {provinces.map((p) => (
+                                    <SelectItem key={p.id} value={p.id}>
+                                      {p.full_name || p.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={addressForm.control}
+                          name="districtId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Quận / Huyện</FormLabel>
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                disabled={!addProvinceId || isDistrictsAddLoading}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue
+                                      placeholder={
+                                        !addProvinceId
+                                          ? "Chọn tỉnh trước"
+                                          : isDistrictsAddLoading
+                                            ? "Đang tải..."
+                                            : "Chọn quận/huyện"
+                                      }
+                                    />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {districtsForAdd.map((d) => (
+                                    <SelectItem key={d.id} value={d.id}>
+                                      {d.full_name || d.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={addressForm.control}
+                        name="isDefault"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center gap-2 space-y-0">
+                            <FormControl>
+                              <input
+                                type="checkbox"
+                                checked={field.value}
+                                onChange={(e) => field.onChange(e.target.checked)}
+                                className="h-4 w-4 rounded border-gray-300"
+                              />
+                            </FormControl>
+                            <FormLabel className="!mt-0 text-sm font-normal">
+                              Đặt làm địa chỉ mặc định
+                            </FormLabel>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -509,13 +780,35 @@ const ProfilePage = () => {
                             )}
                           </div>
 
-                          {/* Address */}
-                          <div className="space-y-1">
+                        {/* Address */}
+                        <div className="space-y-1">
                             <p className="text-sm font-medium text-muted-foreground">Địa chỉ</p>
                             <p className="text-base font-medium leading-relaxed text-foreground">
                               {a.address}
                             </p>
-                          </div>
+                            <p className="text-sm text-muted-foreground">
+                              {a.district}, {a.province}
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {a.isDefault && (
+                            <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                              Địa chỉ mặc định
+                            </span>
+                          )}
+                          {!a.isDefault && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-xs"
+                              onClick={() => handleSetDefaultAddress(a)}
+                              disabled={isSettingDefault === a.id}
+                            >
+                              {isSettingDefault === a.id ? "Đang thiết lập..." : "Thiết lập mặc định"}
+                            </Button>
+                          )}
+                        </div>
                         </div>
 
                         {/* Action Buttons */}
@@ -590,8 +883,91 @@ const ProfilePage = () => {
                         <FormItem>
                           <FormLabel>Địa chỉ</FormLabel>
                           <FormControl>
-                            <Input placeholder="Ví dụ: 123 Đường ABC, Phường XYZ, Quận 1, TP.HCM" {...field} />
+                            <Input placeholder="Số nhà, tên đường..." {...field} />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <FormField
+                        control={updateAddressForm.control}
+                        name="provinceId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tỉnh / Thành phố</FormLabel>
+                            <Select value={field.value} onValueChange={field.onChange}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={isProvincesLoading ? "Đang tải..." : "Chọn tỉnh/thành phố"} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {provinces.map((p) => (
+                                  <SelectItem key={p.id} value={p.id}>
+                                    {p.full_name || p.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={updateAddressForm.control}
+                        name="districtId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Quận / Huyện</FormLabel>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              disabled={!updateProvinceId || isDistrictsUpdateLoading}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue
+                                    placeholder={
+                                      !updateProvinceId
+                                        ? "Chọn tỉnh trước"
+                                        : isDistrictsUpdateLoading
+                                          ? "Đang tải..."
+                                          : "Chọn quận/huyện"
+                                    }
+                                  />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {districtsForUpdate.map((d) => (
+                                  <SelectItem key={d.id} value={d.id}>
+                                    {d.full_name || d.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={updateAddressForm.control}
+                      name="isDefault"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2 space-y-0">
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              checked={field.value}
+                              onChange={(e) => field.onChange(e.target.checked)}
+                              className="h-4 w-4 rounded border-gray-300"
+                            />
+                          </FormControl>
+                          <FormLabel className="!mt-0 text-sm font-normal">
+                            Đặt làm địa chỉ mặc định
+                          </FormLabel>
                           <FormMessage />
                         </FormItem>
                       )}

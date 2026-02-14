@@ -130,6 +130,34 @@ const VoucherEditingForm = ({ voucher, onSuccess, onCancel }: VoucherEditingForm
         }
     }, [voucher]);
 
+    const formatDateWithOffset = (dateString: string): string => {
+        if (!dateString) return "";
+        
+        // Parse datetime-local format (YYYY-MM-DDTHH:mm)
+        const date = new Date(dateString);
+        
+        if (isNaN(date.getTime())) {
+            return dateString; // Return original if invalid
+        }
+        
+        // Get timezone offset in minutes
+        const offsetMinutes = date.getTimezoneOffset();
+        const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
+        const offsetMins = Math.abs(offsetMinutes) % 60;
+        const offsetSign = offsetMinutes <= 0 ? '+' : '-';
+        
+        // Format: YYYY-MM-DDTHH:mm:ss+HH:mm
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        const offset = `${offsetSign}${String(offsetHours).padStart(2, '0')}:${String(offsetMins).padStart(2, '0')}`;
+        
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offset}`;
+    };
+
     const handleSubmit = async (values: VoucherFormValues) => {
         if (!voucher?.id) return;
         setIsSubmitting(true);
@@ -141,8 +169,8 @@ const VoucherEditingForm = ({ voucher, onSuccess, onCancel }: VoucherEditingForm
                 values.discountValue,
                 values.maxDiscount,
                 values.minOrderAmount,
-                values.startDate,
-                values.endDate,
+                formatDateWithOffset(values.startDate),
+                formatDateWithOffset(values.endDate),
                 values.usageLimit,
                 values.perUserLimit,
                 values.isActive

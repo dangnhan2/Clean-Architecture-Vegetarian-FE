@@ -179,8 +179,8 @@ const Dashboard = ({ data }: DashboardProps) => {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {data.topSellingDishes && data.topSellingDishes.length > 0 ? (
-                                    data.topSellingDishes.slice(0, 5).map((dish, index) => (
+                                {data.topSellingMenus && data.topSellingMenus.length > 0 ? (
+                                    data.topSellingMenus.slice(0, 5).map((dish, index) => (
                                         <div
                                             key={index}
                                             className="flex items-center gap-4 p-3 rounded-lg hover:bg-accent transition-colors"

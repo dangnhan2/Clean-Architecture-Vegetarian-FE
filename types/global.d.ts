@@ -161,11 +161,11 @@ declare global {
         revenueMonthly: number
         totalCustomers: number
         totalMenuItems: number
-        topSellingDishes: ITopSellingDish[]
+        topSellingMenus: ITopSellingMenu[]
         topBuyers?: ITopBuyer[]
     }
 
-    interface ITopSellingDish {
+    interface ITopSellingMenu {
         name: string
         imageUrl: string
         soldQuantity: number

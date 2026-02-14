@@ -68,69 +68,192 @@ const NotificationBell = ({ userId }: NotificationBellProps) => {
       return;
     }
 
-    // Cleanup existing connection first
-    if (connectionRef.current) {
-      connectionRef.current.stop().catch(() => {
-        // Ignore errors during cleanup
-      });
-      connectionRef.current = null;
-    }
-
-    const connection = createSignalRConnection(accessToken);
-
-    // Listen for new orders - khi có đơn hàng mới
-    connection.on("NewOrder", (notification: INotification) => {
-      console.log("New order received via SignalR", notification);
-      // Thêm thông báo mới vào danh sách và tăng số lượng
-      setNotifications(prev => [notification, ...prev]);
-      setUnreadCount(prev => prev + 1);
-    });
-
-    connection.on("RatineMenu", (notification: INotification) => {
-      console.log("Menu rating received via SignalR", notification);
-      // Thêm thông báo mới vào danh sách và tăng số lượng
-      setNotifications(prev => [notification, ...prev]);
-      setUnreadCount(prev => prev + 1);
-    });
-
-    // Connection events
-    connection.onclose(() => {
-      setIsConnected(false);
-    });
-
-    connection.onreconnecting(() => {
-      setIsConnected(false);
-    });
-
-    connection.onreconnected(() => {
-      setIsConnected(true);
-    });
-
-    // Start connection
     let isMounted = true;
-    connection
-      .start()
-      .then(() => {
+    let connection: signalR.HubConnection | null = null;
+
+    // Cleanup existing connection first - đợi connection stop hoàn toàn
+    const cleanup = async () => {
+      if (connectionRef.current) {
+        try {
+          // Đợi connection stop hoàn toàn trước khi tạo connection mới
+          await connectionRef.current.stop();
+        } catch (error) {
+          // Ignore errors during cleanup
+          console.log("Error during cleanup:", error);
+        }
+        connectionRef.current = null;
+      }
+    };
+
+    // Hàm khởi tạo connection
+    const initializeConnection = async () => {
+      // Đợi cleanup xong
+      await cleanup();
+      
+      if (!isMounted) return;
+
+      connection = createSignalRConnection(accessToken);
+
+      // Listen for new orders - khi có đơn hàng mới
+      connection.on("NewOrder", (notification: INotification) => {
+        console.log("New order received via SignalR", notification);
+        // Thêm thông báo mới vào danh sách và tăng số lượng
+        setNotifications(prev => [notification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      });
+
+      connection.on("RatingMenu", (notification: INotification) => {
+        console.log("Menu rating received via SignalR", notification);
+        // Thêm thông báo mới vào danh sách và tăng số lượng
+        setNotifications(prev => [notification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      });
+
+      // Connection events
+      connection.onclose((error) => {
+        if (isMounted) {
+          setIsConnected(false);
+          if (error) {
+            console.log("SignalR connection closed with error:", error);
+          }
+        }
+      });
+
+      connection.onreconnecting((error) => {
+        if (isMounted) {
+          setIsConnected(false);
+          console.log("SignalR reconnecting...", error);
+        }
+      });
+
+      connection.onreconnected((connectionId) => {
         if (isMounted) {
           setIsConnected(true);
+          console.log("SignalR reconnected. Connection ID:", connectionId);
+        }
+      });
+
+      // Start connection - đảm bảo không bị stop trong quá trình negotiation
+      try {
+        await connection.start();
+        if (isMounted) {
+          console.log("SignalR connected successfully");
+          setIsConnected(true);
+          connectionRef.current = connection;
           // Thử fetch một lần khi kết nối thành công
           fetchUnreadCount();
         }
-      })
-      .catch((error) => {
+      } catch (error: any) {
         if (isMounted) {
           console.error("SignalR connection error:", error);
-          setIsConnected(false);
-        }
-      });
+          console.error("Error details:", {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+            // Log thông tin về connection state
+            connectionState: connection?.state,
+          });
+          
+          // Kiểm tra các nguyên nhân phổ biến
+          if (error.message?.includes("CORS")) {
+            console.error("CORS error detected. Check backend CORS configuration.");
+          }
+          if (error.message?.includes("SSL") || error.message?.includes("certificate")) {
+            console.error("SSL/Certificate error. Backend may need valid SSL certificate or client needs to accept self-signed cert.");
+          }
+          if (error.message?.includes("401") || error.message?.includes("Unauthorized")) {
+            console.error("Authentication error. Check if access token is valid.");
+          }
+          
+          // Nếu lỗi negotiation, thử lại với skipNegotiation
+          if (error.message?.includes("negotiation") || error.message?.includes("stopped during negotiation")) {
+            console.error("Negotiation error detected. Trying with skipNegotiation...");
+            
+            // Cleanup connection cũ
+            if (connection) {
+              try {
+                await connection.stop();
+              } catch (stopError) {
+                // Ignore stop errors
+              }
+            }
+            
+            // Thử kết nối lại với skipNegotiation
+            try {
+              const directConnection = createSignalRConnection(accessToken);
+              
+              // Setup lại các event handlers
+              directConnection.on("NewOrder", (notification: INotification) => {
+                console.log("New order received via SignalR", notification);
+                setNotifications(prev => [notification, ...prev]);
+                setUnreadCount(prev => prev + 1);
+              });
 
-    connectionRef.current = connection;
+              directConnection.on("RatingMenu", (notification: INotification) => {
+                console.log("Menu rating received via SignalR", notification);
+                setNotifications(prev => [notification, ...prev]);
+                setUnreadCount(prev => prev + 1);
+              });
+
+              directConnection.onclose((error) => {
+                if (isMounted) {
+                  setIsConnected(false);
+                  if (error) {
+                    console.log("SignalR connection closed with error:", error);
+                  }
+                }
+              });
+
+              directConnection.onreconnecting((error) => {
+                if (isMounted) {
+                  setIsConnected(false);
+                  console.log("SignalR reconnecting...", error);
+                }
+              });
+
+              directConnection.onreconnected((connectionId) => {
+                if (isMounted) {
+                  setIsConnected(true);
+                  console.log("SignalR reconnected. Connection ID:", connectionId);
+                }
+              });
+              
+              await directConnection.start();
+              if (isMounted) {
+                console.log("SignalR connected successfully with skipNegotiation");
+                setIsConnected(true);
+                connectionRef.current = directConnection;
+                fetchUnreadCount();
+              }
+            } catch (retryError: any) {
+              console.error("SignalR connection with skipNegotiation also failed:", retryError);
+              setIsConnected(false);
+            }
+          } else {
+            setIsConnected(false);
+            // Cleanup connection nếu start thất bại
+            if (connection) {
+              try {
+                await connection.stop();
+              } catch (stopError) {
+                // Ignore stop errors
+              }
+            }
+          }
+        }
+      }
+    };
+
+    // Khởi tạo connection
+    initializeConnection();
 
     return () => {
       isMounted = false;
+      // Cleanup khi component unmount
       if (connectionRef.current) {
-        connectionRef.current.stop().catch(() => {
+        connectionRef.current.stop().catch((error) => {
           // Ignore errors during cleanup
+          console.log("Error stopping connection during cleanup:", error);
         });
         connectionRef.current = null;
       }

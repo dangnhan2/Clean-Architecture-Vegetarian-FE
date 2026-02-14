@@ -1,9 +1,16 @@
-import axios, { cookieOnlyClient } from './interceptor';
+import axios from './interceptor';
 
 export const Login = (email : string, password : string) => {
    return axios.post<IBackendRes<IAuthResponse>>(`/api/auth/login`, {email, password});
 }
 
+export const LoginGoogle = () => {
+   // Redirect to Google OAuth endpoint
+   // Backend will handle OAuth flow and redirect to /auth/processing?token=...
+   if (typeof window === "undefined") return;
+   
+   window.location.href = `https://localhost:8081/api/auth/login/google`;
+}
 
 export const Register = (email: string, userName : string, password : string, confirmPassword : string) => {
     return axios.post<IBackendRes<string>>(`/api/auth/register`, {email,userName, password, confirmPassword});

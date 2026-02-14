@@ -16,11 +16,12 @@ import {
 import { AddToCart, GetFeaturedFoodItems, GetAdvertisements } from "@/services/api";
 import { useAuth } from "@/context/context";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Home() {
   const {user, fetchCart} = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [featuredItems, setFeaturedItems] = useState<IFoodItem[] | null | undefined>();
   const [advertisements, setAdvertisements] = useState<IAdvertisement[] | null | undefined>();
 
@@ -93,6 +94,27 @@ export default function Home() {
       toast.error(res.message)
     }
   }
+
+  // Redirect về trang processing nếu có token trong URL
+  useEffect(() => {
+    // Lấy token từ URL - ưu tiên searchParams, fallback về window.location
+    let token: string | null = null;
+    
+    try {
+      token = searchParams.get("token");
+    } catch (e) {
+      // Nếu searchParams chưa sẵn sàng, dùng window.location
+      if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search);
+        token = urlParams.get("token");
+      }
+    }
+    
+    // Nếu có token trong URL, redirect về trang processing
+    if (token) {
+      router.push(`/auth/processing?token=${encodeURIComponent(token)}`);
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     fetchFeaturedItems();

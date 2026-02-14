@@ -23,39 +23,6 @@ refreshClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Client chỉ dùng cookie, không thêm Bearer token (dùng cho refresh token sau Google login)
-export const cookieOnlyClient = axios.create({
-  baseURL: "https://localhost:8081",
-  withCredentials: true,
-});
-
-cookieOnlyClient.interceptors.response.use(
-  (response) => {
-    if (response.data) return response.data;
-    return response;
-  },
-  (error) => {
-    // Xử lý lỗi tương tự như instance
-    if (error.response?.data) {
-      if (error.response.data.isSuccess !== undefined) {
-        return error.response.data;
-      }
-      return {
-        isSuccess: false,
-        statusCode: error.response.status || 500,
-        message: error.response.data.message || error.response.data || "Có lỗi xảy ra",
-        data: error.response.data.data || null,
-      };
-    }
-    return Promise.reject({
-      isSuccess: false,
-      statusCode: error.response?.status || 500,
-      message: error.message || "Có lỗi xảy ra",
-      data: null,
-    });
-  }
-);
-
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
@@ -128,7 +95,7 @@ instance.interceptors.response.use(
         console.error("Refresh token failed:", err);
         processQueue(err, null);
         localStorage.removeItem("access_token");
-        // 👉 Redirect về trang login khi refresh token thất bại
+        // Redirect về trang login khi refresh token thất bại
         window.location.href = "/auth/login";
         return Promise.reject(err);
       } finally {

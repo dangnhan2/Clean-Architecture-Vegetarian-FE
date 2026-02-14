@@ -29,17 +29,29 @@ const PublicHeader = () => {
   const cartDropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
-    let res = await Logout();
-    if (res.isSuccess && Number(res.statusCode) === 200){
-        setAccessToken(undefined);
-        setUser(undefined);
-        setIsAuthen(false);
-        toast.success(res.message);
-        router.push("/auth/login");
-    }else{
-        toast.error(res.message);
+    try {
+      let res = await Logout();
+      if (res.isSuccess && Number(res.statusCode) === 200){
+          // Xóa token khỏi localStorage
+          localStorage.removeItem("access_token");
+          setAccessToken(undefined);
+          setUser(undefined);
+          setIsAuthen(false);
+          toast.success(res.message);
+          router.push("/auth/login");
+      }else{
+          toast.error(res.message);
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Vẫn xóa token và clear state ngay cả khi API thất bại
+      localStorage.removeItem("access_token");
+      setAccessToken(undefined);
+      setUser(undefined);
+      setIsAuthen(false);
+      toast.error("Đã xảy ra lỗi khi đăng xuất");
+      router.push("/auth/login");
     }
-    
   };
 
   const handleSearch = async (keyword: string) => {

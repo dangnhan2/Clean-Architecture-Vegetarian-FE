@@ -119,7 +119,8 @@ declare global {
         orderDate : string
         fullName : string
         phoneNumber : string
-        address : string
+        address : string,
+        city : string,
         note : string
         orderStatus : number
         totalAmount : number

@@ -22,9 +22,11 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 const getOrderStatus = (status: number): { text: string; variant: "default" | "secondary" | "destructive" | "outline" } => {
   switch (status) {
     case 1:
-      return { text: "Đã hoàn thành", variant: "secondary" };
+      return { text: "Đã thanh toán", variant: "secondary" };
     case 2:
       return { text: "Đã hủy", variant: "destructive" };
+    case 3:
+      return { text: "Đã xác nhận đơn hàng", variant: "default" };
     default:
       return { text: "Không xác định", variant: "outline" };
   }
@@ -216,7 +218,7 @@ const OrderHistoryPage = () => {
             <div className="space-y-6">
               {orders?.map((order) => {
                 const status = getOrderStatus(order.orderStatus);
-                const isCompleted = order.orderStatus === 1;
+                const canReview = order.orderStatus === 1 || order.orderStatus === 3;
                 return (
                   <Card key={order.id} className="shadow-lg border border-gray-100">
                     <CardContent className="p-6">
@@ -285,7 +287,7 @@ const OrderHistoryPage = () => {
                                 </p>
                               </div>
                               <div className="flex-shrink-0 flex flex-col gap-2">
-                                {isCompleted && (
+                                {canReview && (
                                   item.isRated ? (
                                     <div className="px-4 py-2 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-md text-center">
                                       Đã đánh giá

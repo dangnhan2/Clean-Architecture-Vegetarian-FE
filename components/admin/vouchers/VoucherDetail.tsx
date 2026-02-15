@@ -42,7 +42,7 @@ const VoucherDetail = ({ voucher }: { voucher: IVoucher }) => {
                 <p>{voucher.startDate} - {voucher.endDate}</p>
             </div>
             <div className="space-y-1">
-                <p className="font-semibold text-gray-900">Giới hạn / Đã dùng</p>
+                <p className="font-semibold text-gray-900">Đã dùng / Giới hạn </p>
                 <p>{voucher.usedCount} / {voucher.usageLimit}</p>
             </div>
             <div className="space-y-1">

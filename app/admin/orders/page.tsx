@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye } from "lucide-react";
-import { GetOrdersAdmin } from "@/services/api";
+import { Eye, CheckCircle } from "lucide-react";
+import { GetOrdersAdmin, ConfirmOrder } from "@/services/api";
 import { useEffect, useState } from "react";
 import PaginationControl from "@/components/common/PaginationControl";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ const getOrderStatusBadge = (status: number) => {
     if (status === 1) {
         return (
             <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                Hoàn thành
+                Đã thanh toán
             </Badge>
         );
     }
@@ -24,6 +24,13 @@ const getOrderStatusBadge = (status: number) => {
         return (
             <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100">
                 Hủy đơn
+            </Badge>
+        );
+    }
+    if (status === 3) {
+        return (
+            <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
+                Đã xác nhận đơn hàng
             </Badge>
         );
     }
@@ -75,6 +82,21 @@ const AdminOrdersPage = () => {
         setIsDetailDialogOpen(true);
     };
 
+    const handleConfirmOrder = async (orderId: string) => {
+        try {
+            const res = await ConfirmOrder(orderId);
+            if (res.isSuccess && Number(res.statusCode) === 200) {
+                toast.success("Xác nhận đơn hàng thành công");
+                fetchOrders(); // Refresh danh sách đơn hàng
+            } else {
+                toast.error(res.message || "Không thể xác nhận đơn hàng");
+            }
+        } catch (error) {
+            console.error("Error confirming order:", error);
+            toast.error("Đã xảy ra lỗi khi xác nhận đơn hàng");
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50 to-white p-6 md:p-10">
             <div className="flex flex-col gap-6 max-w-6xl mx-auto">
@@ -92,12 +114,11 @@ const AdminOrdersPage = () => {
 
                     <CardContent className="p-0 overflow-x-auto">
                         <div className="min-w-[1500px]">
-                            <div className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1.2fr_1.2fr_1fr_1fr_1fr_0.8fr] gap-3 px-4 py-3 text-sm font-semibold text-gray-500 border-b bg-white">
+                            <div className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1.2fr_1fr_1fr_1.2fr_1fr] gap-3 px-4 py-3 text-sm font-semibold text-gray-500 border-b bg-white">
                                 <span className="text-left">Mã đơn</span>
                                 <span className="text-left">Ngày đặt</span>
                                 <span className="text-left">Họ tên</span>
                                 <span className="text-left">Số điện thoại</span>
-                                <span className="text-left">Địa chỉ</span>
                                 <span className="text-left">Ghi chú</span>
                                 <span className="text-center">Trạng thái</span>
                                 <span className="text-center">Phương thức thanh toán</span>
@@ -109,13 +130,12 @@ const AdminOrdersPage = () => {
                                 {orders?.map((order) => (
                                     <div
                                         key={order.id}
-                                        className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1.2fr_1.2fr_1fr_1fr_1fr_0.8fr] gap-3 px-4 py-4 items-center bg-white hover:bg-gray-50 transition-colors text-sm"
+                                        className="grid grid-cols-[0.8fr_1.2fr_1fr_1.5fr_1.2fr_1fr_1fr_1.2fr_1fr] gap-3 px-4 py-4 items-center bg-white hover:bg-gray-50 transition-colors text-sm"
                                     >
                                         <div className="text-gray-900 font-semibold">#{order.orderCode}</div>
                                         <div className="text-gray-700">{order.orderDate}</div>
                                         <div className="font-semibold text-gray-900">{order.fullName}</div>
                                         <div className="text-gray-700">{order.phoneNumber}</div>
-                                        <div className="text-gray-700 line-clamp-2">{order.address}</div>
                                         <div className="text-gray-700 line-clamp-2">
                                             {order.note || "--"}
                                         </div>
@@ -126,18 +146,27 @@ const AdminOrdersPage = () => {
                                             <Badge variant="outline" className="text-xs">
                                                 {order.paymentMethod === "QR" ? "Thanh toán QR" : 
                                                  order.paymentMethod === "COD" ? "Thanh toán khi nhận hàng" :
-                                                 order.paymentMethod === "PayOS" ? "PayOS" :
-                                                 order.paymentMethod || "--"}
+                                                 "--" }                                    
                                             </Badge>
                                         </div>
                                         <div className="text-purple-700 font-semibold text-right tabular-nums">
                                             {order.totalAmount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
                                         </div>
-                                        <div className="flex items-center gap-2 justify-end">
+                                        <div className="flex items-center gap-2 justify-end min-w-fit">
+                                            {order.orderStatus === 1 && (
+                                                <Button
+                                                    variant="default"
+                                                    size="sm"
+                                                    className="bg-green-600 text-white hover:bg-green-700 flex-shrink-0"
+                                                    onClick={() => handleConfirmOrder(order.id)}
+                                                >
+                                                    <CheckCircle className="h-4 w-4" />
+                                                </Button>
+                                            )}
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                                                className="border-purple-200 text-purple-700 hover:bg-purple-50 flex-shrink-0"
                                                 onClick={() => handleViewOrder(order)}
                                                 disabled={isLoadingDetail}
                                             >

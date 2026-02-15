@@ -13,9 +13,10 @@ import { Button } from "@/components/ui/button";
 
 interface NotificationBellProps {
   userId: string;
+  notificationRoute?: string; // Optional route for notifications page
 }
 
-const NotificationBell = ({ userId }: NotificationBellProps) => {
+const NotificationBell = ({ userId, notificationRoute = "/admin/notifications" }: NotificationBellProps) => {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [notifications, setNotifications] = useState<INotification[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -24,6 +25,7 @@ const NotificationBell = ({ userId }: NotificationBellProps) => {
   const router = useRouter();
   const { accessToken } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch unread count and notifications
   const fetchUnreadCount = useCallback(async () => {
@@ -104,6 +106,13 @@ const NotificationBell = ({ userId }: NotificationBellProps) => {
 
       connection.on("RatingMenu", (notification: INotification) => {
         console.log("Menu rating received via SignalR", notification);
+        // Thêm thông báo mới vào danh sách và tăng số lượng
+        setNotifications(prev => [notification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      });
+
+      connection.on("OrderConfirmed", (notification: INotification) => {
+        console.log("Order confirmed received via SignalR", notification);
         // Thêm thông báo mới vào danh sách và tăng số lượng
         setNotifications(prev => [notification, ...prev]);
         setUnreadCount(prev => prev + 1);
@@ -195,6 +204,12 @@ const NotificationBell = ({ userId }: NotificationBellProps) => {
                 setUnreadCount(prev => prev + 1);
               });
 
+              directConnection.on("OrderConfirmed", (notification: INotification) => {
+                console.log("Order confirmed received via SignalR", notification);
+                setNotifications(prev => [notification, ...prev]);
+                setUnreadCount(prev => prev + 1);
+              });
+
               directConnection.onclose((error) => {
                 if (isMounted) {
                   setIsConnected(false);
@@ -260,27 +275,60 @@ const NotificationBell = ({ userId }: NotificationBellProps) => {
     };
   }, [userId, accessToken]); // Removed fetchUnreadCount from dependencies
 
-  // Initial fetch - chỉ fetch một lần khi component mount
+  // Reset state khi userId thay đổi
+  useEffect(() => {
+    setUnreadCount(0);
+    setNotifications([]);
+    setIsHovered(false);
+  }, [userId]);
+
+  // Initial fetch - chỉ fetch một lần khi component mount hoặc userId thay đổi
   useEffect(() => {
     if (userId) {
       fetchUnreadCount();
     }
-  }, [userId]);
+  }, [userId, fetchUnreadCount]);
 
   const handleClick = () => {
-    router.push("/admin/notifications");
+    router.push(notificationRoute);
   };
+
+  const handleMouseEnter = () => {
+    // Clear any pending timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    // Delay đóng dropdown một chút để tránh đóng nhầm khi di chuột nhanh
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovered(false);
+    }, 100);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div 
       className="relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <button
         onClick={handleClick}
         className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
         aria-label="Thông báo"
+        onMouseEnter={handleMouseEnter}
       >
         <Bell className="w-6 h-6 text-gray-700" />
         {unreadCount > 0 && (
@@ -293,16 +341,16 @@ const NotificationBell = ({ userId }: NotificationBellProps) => {
       {/* Dropdown */}
       {isHovered && (
         <>
-          {/* Invisible bridge to prevent gap issues */}
+          {/* Invisible bridge to prevent gap issues - chỉ giữ hover, không đóng khi leave */}
           <div 
             className="absolute right-0 top-full w-96 h-2 z-50"
-            onMouseEnter={() => setIsHovered(true)}
+            onMouseEnter={handleMouseEnter}
           />
           <div
             ref={dropdownRef}
-            className="absolute right-0 top-full mt-2 w-96 max-h-[500px] overflow-hidden z-50"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            className="absolute right-0 top-full mt-1 w-96 max-h-[500px] overflow-hidden z-50"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
           <Card className="shadow-lg border border-gray-200">
             <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -329,7 +377,7 @@ const NotificationBell = ({ userId }: NotificationBellProps) => {
                       className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
                         !notification.isRead ? "bg-blue-50/50" : ""
                       }`}
-                      onClick={() => router.push("/admin/notifications")}
+                      onClick={() => router.push(notificationRoute)}
                     >
                       <div className="flex items-start gap-3">
                         <div className="flex-1 min-w-0">

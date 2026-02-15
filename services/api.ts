@@ -230,6 +230,10 @@ export const GetVouchersAdmin = (query : string) => {
     return axios.get<IBackendRes<IModelPaginate<IVoucher>>>(`/api/admin/vouchers?${query}`);
 }
 
+export const ConfirmOrder = (orderId : string) => {
+    return axios.post<IBackendRes<string>>(`/api/admin/order/${orderId}/confirm`);
+}
+
 export const CreateVoucher = (code : string,  discountType : string, discountValue : number, maxDiscount : number, minOrderAmount : number, startDate : string, endDate : string, usageLimit : number, perUserLimit : number, isActive : boolean) => {
     return axios.post<IBackendRes<IVoucher>>(`/api/admin/voucher`, {code, discountType, discountValue, maxDiscount, minOrderAmount, startDate, endDate, usageLimit, perUserLimit, isActive});
 }
@@ -261,7 +265,6 @@ export const CreateOrderWithCOD = (userId : string, voucherId : string | null | 
 export const GetOrdersByUser = (userId : string, query : string) => {
     return axios.get<IBackendRes<IModelPaginate<IOrderHistory>>>(`/api/common/user/${userId}/orders?${query}`)
 }
-
 
 export const GetRatingsByMenu = (menuId : string, query : string) => {
     return axios.get<IBackendRes<IModelPaginate<IRating>>>(`/api/common/ratings/menu/${menuId}?${query}`);

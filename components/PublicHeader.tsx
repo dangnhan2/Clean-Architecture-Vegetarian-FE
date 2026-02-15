@@ -8,6 +8,7 @@ import { Search } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/context/context";
 import UserMenu from "./UserMenu";
+import NotificationBell from "./NotificationBell";
 import { useRouter } from "next/navigation";
 import { Logout, SearchMenu } from "@/services/api";
 import { toast } from "sonner";
@@ -260,12 +261,20 @@ const PublicHeader = () => {
           <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
             {/* Profile/Auth - đặt trước cart */}
             {isAuthen === true ? (
-              <UserMenu
-                fullName={user?.userName}
-                avatarUrl={user?.imageUrl}
-                onLogout={handleLogout}
-                onOpenChange={setIsUserMenuOpen}
-              />
+              <>
+                {user?.id && (
+                  <NotificationBell
+                    userId={user.id}
+                    notificationRoute="/account/notifications"
+                  />
+                )}
+                <UserMenu
+                  fullName={user?.userName}
+                  avatarUrl={user?.imageUrl}
+                  onLogout={handleLogout}
+                  onOpenChange={setIsUserMenuOpen}
+                />
+              </>
             ) : (
               <Link href="/auth/login">
                 <Button

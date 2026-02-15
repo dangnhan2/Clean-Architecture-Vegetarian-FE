@@ -22,6 +22,13 @@ const getOrderStatusBadge = (status: number) => {
             </Badge>
         );
     }
+    if (status === 3) {
+        return (
+            <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
+                Confirm
+            </Badge>
+        );
+    }
     return (
         <Badge variant="secondary" className="bg-gray-100 text-gray-600 hover:bg-gray-100">
             Đang xử lý
@@ -54,7 +61,10 @@ const OrderDetail = ({ order }: OrderDetailProps) => {
                 </div>
                 <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 md:col-span-2">
                     <p className="text-sm text-gray-500 mb-1">Địa chỉ</p>
-                    <p className="font-semibold text-gray-900">{order.address}</p>
+                    <p className="font-semibold text-gray-900">
+                        {order.address}
+                        {order.city && `, ${order.city}`}
+                    </p>
                 </div>
                 <div className="p-4 rounded-lg bg-gray-50 border border-gray-100 md:col-span-2">
                     <p className="text-sm text-gray-500 mb-1">Ghi chú</p>

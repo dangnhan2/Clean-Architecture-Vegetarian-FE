@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MapPin, CreditCard, Tag, X, User } from "lucide-react";
+import { ArrowLeft, MapPin, CreditCard, Tag, X, User, Edit2, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -14,13 +14,40 @@ import {
     DialogTitle,
     DialogFooter,
     DialogDescription,
+    DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/context/context";
-import { CreateOrderWithCOD, CreateOrderWithQR, GetAddresses, GetVouchers, ValidateVoucher } from "@/services/api";
+import { CreateOrderWithCOD, CreateOrderWithQR, GetAddresses, GetVouchers, ValidateVoucher, AddAddress, UpdateAddress, DeleteAddress, SetAddressDefault } from "@/services/api";
+import { GetProvinces, GetDistricts } from "@/services/external_api";
 import { toast } from "sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const TAX_RATE = 0.08;
+
+// Schema thêm / sửa địa chỉ
+const addressSchema = z.object({
+    fullName: z.string().min(2, "Họ và tên phải có ít nhất 2 ký tự"),
+    phoneNumber: z.string().min(10, "Số điện thoại phải có ít nhất 10 số"),
+    provinceId: z.string().min(1, "Vui lòng chọn Tỉnh/Thành phố"),
+    districtId: z.string().min(1, "Vui lòng chọn Quận/Huyện"),
+    address: z.string().min(5, "Địa chỉ chi tiết phải có ít nhất 5 ký tự"),
+    isDefault: z.boolean().default(false),
+});
+
+interface AddressValues {
+    fullName: string;
+    phoneNumber: string;
+    provinceId: string;
+    districtId: string;
+    address: string;
+    isDefault: boolean;
+}
 
 const CheckoutPage = () => {
     const { cart, user, fetchCart } = useAuth();
@@ -41,20 +68,299 @@ const CheckoutPage = () => {
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
     const cartItems = cart?.items || [];
 
+    // Address management
+    const [isAddAddressOpen, setIsAddAddressOpen] = useState(false);
+    const [isUpdateAddressOpen, setIsUpdateAddressOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [addressToUpdate, setAddressToUpdate] = useState<IAddress | null>(null);
+    const [addressToDelete, setAddressToDelete] = useState<IAddress | null>(null);
+    const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
+
+    // Provinces and Districts
+    const [provinces, setProvinces] = useState<IProvinceData[]>([]);
+    const [isProvincesLoading, setIsProvincesLoading] = useState(false);
+    const [districtsForAdd, setDistrictsForAdd] = useState<IDistrictData[]>([]);
+    const [districtsForUpdate, setDistrictsForUpdate] = useState<IDistrictData[]>([]);
+    const [isDistrictsAddLoading, setIsDistrictsAddLoading] = useState(false);
+    const [isDistrictsUpdateLoading, setIsDistrictsUpdateLoading] = useState(false);
+
+    // Forms
+    const addressForm = useForm<AddressValues>({
+        resolver: zodResolver(addressSchema) as any,
+        defaultValues: {
+            fullName: "",
+            phoneNumber: "",
+            provinceId: "",
+            districtId: "",
+            address: "",
+            isDefault: false,
+        },
+    });
+
+    const updateAddressForm = useForm<AddressValues>({
+        resolver: zodResolver(addressSchema) as any,
+        defaultValues: {
+            fullName: "",
+            phoneNumber: "",
+            provinceId: "",
+            districtId: "",
+            address: "",
+            isDefault: false,
+        },
+    });
+
+    const addProvinceId = useWatch({ control: addressForm.control, name: "provinceId" });
+    const updateProvinceId = useWatch({ control: updateAddressForm.control, name: "provinceId" });
+
     const fetchAddresses = async () => {
         if (user?.id) {
             const res = await GetAddresses(user?.id);
             if (res.isSuccess && res.data) {
                 setAddresses(res.data);
+                // Auto-select default address if available
+                const defaultAddress = res.data.find(a => a.isDefault);
+                if (defaultAddress && !selectedAddressId) {
+                    setSelectedAddressId(defaultAddress.id);
+                }
             }
         }
     }
+
+    const fetchProvinces = async () => {
+        if (provinces.length > 0) return;
+        setIsProvincesLoading(true);
+        try {
+            const res = await GetProvinces();
+            const payload = res.data as unknown as IProvince;
+            if (payload?.error === 0) {
+                setProvinces(payload.data || []);
+            } else {
+                toast.error(payload?.error_text || "Không thể tải danh sách tỉnh/thành phố");
+            }
+        } catch (error) {
+            console.error("GetProvinces error:", error);
+            toast.error("Không thể tải danh sách tỉnh/thành phố");
+        } finally {
+            setIsProvincesLoading(false);
+        }
+    };
+
+    const fetchDistricts = async (provinceId: string, mode: "add" | "update") => {
+        if (!provinceId) return;
+        if (mode === "add") setIsDistrictsAddLoading(true);
+        else setIsDistrictsUpdateLoading(true);
+
+        try {
+            const res = await GetDistricts(provinceId);
+            const payload = res.data as unknown as IDistrict;
+            if (payload?.error === 0) {
+                const list = payload.data || [];
+                if (mode === "add") setDistrictsForAdd(list);
+                else setDistrictsForUpdate(list);
+            } else {
+                toast.error(payload?.error_text || "Không thể tải danh sách quận/huyện");
+            }
+        } catch (error) {
+            console.error("GetDistricts error:", error);
+            toast.error("Không thể tải danh sách quận/huyện");
+        } finally {
+            if (mode === "add") setIsDistrictsAddLoading(false);
+            else setIsDistrictsUpdateLoading(false);
+        }
+    };
+
+    const handleAddAddress = async (values: AddressValues) => {
+        if (user?.id) {
+            const provinceName =
+                provinces.find((p) => p.id === values.provinceId)?.full_name ||
+                provinces.find((p) => p.id === values.provinceId)?.name ||
+                "";
+            const districtName =
+                districtsForAdd.find((d) => d.id === values.districtId)?.full_name ||
+                districtsForAdd.find((d) => d.id === values.districtId)?.name ||
+                "";
+
+            let res = await AddAddress(
+                user.id,
+                values.address,
+                values.fullName,
+                values.phoneNumber,
+                provinceName,
+                districtName,
+                values.isDefault
+            );
+            if (res.isSuccess && Number(res.statusCode) === 201) {
+                toast.success(res.message);
+                await fetchAddresses();
+                setIsAddAddressOpen(false);
+                addressForm.reset();
+            } else {
+                toast.error(res.message);
+            }
+        }
+    };
+
+    const handleUpdateClick = (address: IAddress) => {
+        setAddressToUpdate(address);
+        updateAddressForm.reset({
+            fullName: address.fullName || "",
+            phoneNumber: address.phoneNumber || "",
+            provinceId: "",
+            districtId: "",
+            address: address.address,
+            isDefault: address.isDefault ?? false,
+        });
+        setIsUpdateAddressOpen(true);
+    };
+
+    const handleUpdateAddress = async (values: AddressValues) => {
+        if (addressToUpdate?.id && user?.id) {
+            const provinceName =
+                provinces.find((p) => p.id === values.provinceId)?.full_name ||
+                provinces.find((p) => p.id === values.provinceId)?.name ||
+                "";
+            const districtName =
+                districtsForUpdate.find((d) => d.id === values.districtId)?.full_name ||
+                districtsForUpdate.find((d) => d.id === values.districtId)?.name ||
+                "";
+
+            let res = await UpdateAddress(
+                addressToUpdate.id,
+                user.id,
+                values.address,
+                values.fullName,
+                values.phoneNumber,
+                provinceName,
+                districtName,
+                values.isDefault
+            );
+            if (res.isSuccess && Number(res.statusCode) === 200) {
+                toast.success(res.message);
+                await fetchAddresses();
+                setIsUpdateAddressOpen(false);
+                setAddressToUpdate(null);
+                updateAddressForm.reset();
+            } else {
+                toast.error(res.message);
+            }
+        }
+    };
+
+    const handleDeleteClick = (address: IAddress) => {
+        setAddressToDelete(address);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!addressToDelete?.id) return;
+
+        let res = await DeleteAddress(addressToDelete.id);
+        if (res.isSuccess && Number(res.statusCode) === 200) {
+            await fetchAddresses();
+            toast.success(res.message);
+            setIsDeleteDialogOpen(false);
+            setAddressToDelete(null);
+            // Clear selection if deleted address was selected
+            if (selectedAddressId === addressToDelete.id) {
+                setSelectedAddressId("");
+            }
+        } else {
+            toast.error(res.message);
+        }
+    };
+
+    const handleSetDefaultAddress = async (address: IAddress) => {
+        if (!address.id || address.isDefault) return;
+        setIsSettingDefault(address.id);
+        try {
+            const res = await SetAddressDefault(address.id);
+            if (res.isSuccess && Number(res.statusCode) === 200) {
+                toast.success(res.message || "Đã thiết lập địa chỉ mặc định");
+                await fetchAddresses();
+            } else {
+                toast.error(res.message || "Không thể thiết lập địa chỉ mặc định");
+            }
+        } catch (error) {
+            console.error("SetAddressDefault error:", error);
+            toast.error("Không thể thiết lập địa chỉ mặc định");
+        } finally {
+            setIsSettingDefault(null);
+        }
+    };
 
     useEffect(() => {
         if (user?.id) {
             fetchAddresses();
         }
     }, [user?.id]);
+
+    // Reset form khi mở dialog thêm địa chỉ
+    useEffect(() => {
+        if (isAddAddressOpen) {
+            fetchProvinces();
+            setDistrictsForAdd([]);
+            addressForm.reset({
+                fullName: "",
+                phoneNumber: "",
+                provinceId: "",
+                districtId: "",
+                address: "",
+                isDefault: false,
+            });
+        }
+    }, [isAddAddressOpen]);
+
+    // Load districts when province changes (Add)
+    useEffect(() => {
+        if (!isAddAddressOpen) return;
+        if (addProvinceId) {
+            addressForm.setValue("districtId", "");
+            fetchDistricts(addProvinceId, "add");
+        } else {
+            setDistrictsForAdd([]);
+        }
+    }, [isAddAddressOpen, addProvinceId]);
+
+    // When update dialog opens: fetch provinces
+    useEffect(() => {
+        if (!isUpdateAddressOpen) return;
+        fetchProvinces();
+    }, [isUpdateAddressOpen]);
+
+    // Map existing province/district name -> ids when update dialog opens
+    useEffect(() => {
+        if (!isUpdateAddressOpen || !addressToUpdate || provinces.length === 0) return;
+
+        const matchedProvince =
+            provinces.find((p) => p.full_name === addressToUpdate.province) ||
+            provinces.find((p) => p.name === addressToUpdate.province);
+
+        if (matchedProvince) {
+            updateAddressForm.setValue("provinceId", matchedProvince.id);
+            updateAddressForm.setValue("districtId", "");
+            fetchDistricts(matchedProvince.id, "update");
+        }
+    }, [isUpdateAddressOpen, addressToUpdate?.province, provinces.length]);
+
+    useEffect(() => {
+        if (!isUpdateAddressOpen || !addressToUpdate) return;
+        if (updateProvinceId) {
+            fetchDistricts(updateProvinceId, "update");
+        }
+    }, [isUpdateAddressOpen, updateProvinceId]);
+
+    useEffect(() => {
+        if (!isUpdateAddressOpen || !addressToUpdate) return;
+        if (districtsForUpdate.length === 0) return;
+
+        const matchedDistrict =
+            districtsForUpdate.find((d) => d.full_name === addressToUpdate.district) ||
+            districtsForUpdate.find((d) => d.name === addressToUpdate.district);
+
+        if (matchedDistrict) {
+            updateAddressForm.setValue("districtId", matchedDistrict.id);
+        }
+    }, [isUpdateAddressOpen, addressToUpdate?.district, districtsForUpdate.length]);
 
     const formatCurrency = (amount: number) => {
         return amount.toLocaleString("vi-VN") + "₫";
@@ -222,18 +528,32 @@ const CheckoutPage = () => {
                         {/* Delivery Address */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <MapPin className="w-5 h-5" />
-                                    Địa chỉ giao hàng
-                                </CardTitle>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center gap-2">
+                                        <MapPin className="w-5 h-5" />
+                                        Địa chỉ giao hàng
+                                    </CardTitle>
+                                    {addresses.length > 0 && (
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm"
+                                            onClick={() => setIsAddAddressOpen(true)}
+                                        >
+                                            ＋ Thêm địa chỉ
+                                        </Button>
+                                    )}
+                                </div>
                             </CardHeader>
                             <CardContent>
                                 {addresses.length === 0 ? (
                                     <div className="text-center py-8 text-gray-500">
                                         <p className="mb-4">Bạn chưa có địa chỉ nào</p>
-                                        <Link href="/account/profile">
-                                            <Button variant="outline">Thêm địa chỉ</Button>
-                                        </Link>
+                                        <Button 
+                                            variant="outline"
+                                            onClick={() => setIsAddAddressOpen(true)}
+                                        >
+                                            Thêm địa chỉ
+                                        </Button>
                                     </div>
                                 ) : (
                                     <RadioGroup
@@ -244,40 +564,103 @@ const CheckoutPage = () => {
                                         {addresses.map((address) => {
                                             const isSelected = selectedAddressId === address.id;
 
-
                                             return (
-                                                <label
+                                                <div
                                                     key={address.id}
-                                                    className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${isSelected
+                                                    className={`group relative flex items-start gap-3 p-4 rounded-lg border-2 transition-all ${isSelected
                                                         ? "border-purple-600 bg-purple-50/50"
                                                         : "border-gray-200 hover:border-gray-300"
                                                         }`}
                                                 >
-                                                    <div className="mt-1">
-                                                        <RadioGroupItem
-                                                            value={address.id}
-                                                            id={address.id}
-                                                        />
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        {/* Name and Phone */}
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <span className="font-semibold text-base">
-                                                                {address.fullName || "N/A"}
-                                                            </span>
-                                                            <span className="text-gray-400">|</span>
-                                                            <span className="text-gray-600">
-                                                                {address.phoneNumber || "N/A"}
-                                                            </span>
-
+                                                    <label className="flex-1 flex items-start gap-3 cursor-pointer">
+                                                        <div className="mt-1">
+                                                            <RadioGroupItem
+                                                                value={address.id}
+                                                                id={address.id}
+                                                            />
                                                         </div>
+                                                        <div className="flex-1">
+                                                            {/* Name and Phone */}
+                                                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                                                <span className="font-semibold text-base">
+                                                                    {address.fullName || "N/A"}
+                                                                </span>
+                                                                <span className="text-gray-400">|</span>
+                                                                <span className="text-gray-600">
+                                                                    {address.phoneNumber || "N/A"}
+                                                                </span>
+                                                                {address.isDefault && (
+                                                                    <>
+                                                                        <span className="text-gray-400">|</span>
+                                                                        <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded">
+                                                                            Mặc định
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                            </div>
 
-                                                        {/* Full Address */}
-                                                        <p className="text-sm text-gray-700 leading-relaxed">
-                                                            {address.address}
-                                                        </p>
+                                                            {/* Full Address */}
+                                                            <p className="text-sm text-gray-700 leading-relaxed mb-1">
+                                                                {address.address}
+                                                            </p>
+                                                            
+                                                            {/* District and Province */}
+                                                            {(address.district || address.province) && (
+                                                                <p className="text-sm text-gray-600">
+                                                                    {[address.district, address.province].filter(Boolean).join(", ")}
+                                                                </p>
+                                                            )}
+
+                                                            {/* Set Default Button */}
+                                                            {!address.isDefault && (
+                                                                <div className="mt-2">
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="h-7 text-xs"
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault();
+                                                                            e.stopPropagation();
+                                                                            handleSetDefaultAddress(address);
+                                                                        }}
+                                                                        disabled={isSettingDefault === address.id}
+                                                                    >
+                                                                        {isSettingDefault === address.id ? "Đang thiết lập..." : "Thiết lập mặc định"}
+                                                                    </Button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </label>
+                                                    {/* Action Buttons */}
+                                                    <div className="flex shrink-0 gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleUpdateClick(address);
+                                                            }}
+                                                            title="Cập nhật"
+                                                        >
+                                                            <Edit2 className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleDeleteClick(address);
+                                                            }}
+                                                            title="Xóa"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
                                                     </div>
-                                                </label>
+                                                </div>
                                             );
                                         })}
                                     </RadioGroup>
@@ -602,6 +985,342 @@ const CheckoutPage = () => {
                             className="bg-black hover:bg-black/90 text-white"
                         >
                             {isPlacingOrder ? "Đang xử lý..." : "Xác nhận đặt hàng"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Add Address Dialog */}
+            <Dialog open={isAddAddressOpen} onOpenChange={setIsAddAddressOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Thêm địa chỉ mới</DialogTitle>
+                        <DialogDescription>
+                            Nhập địa chỉ giao hàng của bạn. Bạn có thể thêm nhiều địa chỉ.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Form {...addressForm}>
+                        <form onSubmit={addressForm.handleSubmit(handleAddAddress)} className="space-y-4">
+                            <FormField
+                                control={addressForm.control}
+                                name="fullName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Họ và tên</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Nguyễn Văn A" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addressForm.control}
+                                name="phoneNumber"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Số điện thoại</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="0123456789" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={addressForm.control}
+                                name="address"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Địa chỉ</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Số nhà, tên đường..." {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <FormField
+                                    control={addressForm.control}
+                                    name="provinceId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Tỉnh / Thành phố</FormLabel>
+                                            <Select value={field.value} onValueChange={field.onChange}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder={isProvincesLoading ? "Đang tải..." : "Chọn tỉnh/thành phố"} />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {provinces.map((p) => (
+                                                        <SelectItem key={p.id} value={p.id}>
+                                                            {p.full_name || p.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={addressForm.control}
+                                    name="districtId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Quận / Huyện</FormLabel>
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                disabled={!addProvinceId || isDistrictsAddLoading}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue
+                                                            placeholder={
+                                                                !addProvinceId
+                                                                    ? "Chọn tỉnh trước"
+                                                                    : isDistrictsAddLoading
+                                                                        ? "Đang tải..."
+                                                                        : "Chọn quận/huyện"
+                                                            }
+                                                        />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {districtsForAdd.map((d) => (
+                                                        <SelectItem key={d.id} value={d.id}>
+                                                            {d.full_name || d.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <FormField
+                                control={addressForm.control}
+                                name="isDefault"
+                                render={({ field }) => (
+                                    <FormItem className="flex items-center gap-2 space-y-0">
+                                        <FormControl>
+                                            <input
+                                                type="checkbox"
+                                                checked={field.value}
+                                                onChange={(e) => field.onChange(e.target.checked)}
+                                                className="h-4 w-4 rounded border-gray-300"
+                                            />
+                                        </FormControl>
+                                        <FormLabel className="!mt-0 text-sm font-normal">
+                                            Đặt làm địa chỉ mặc định
+                                        </FormLabel>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <DialogFooter>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setIsAddAddressOpen(false);
+                                    }}
+                                >
+                                    Hủy
+                                </Button>
+                                <Button type="submit">Thêm địa chỉ</Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Update Address Dialog */}
+            <Dialog open={isUpdateAddressOpen} onOpenChange={setIsUpdateAddressOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Cập nhật địa chỉ</DialogTitle>
+                        <DialogDescription>
+                            Chỉnh sửa địa chỉ giao hàng của bạn.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Form {...updateAddressForm}>
+                        <form onSubmit={updateAddressForm.handleSubmit(handleUpdateAddress)} className="space-y-4">
+                            <FormField
+                                control={updateAddressForm.control}
+                                name="fullName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Họ và tên</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Nguyễn Văn A" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={updateAddressForm.control}
+                                name="phoneNumber"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Số điện thoại</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="0123456789" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={updateAddressForm.control}
+                                name="address"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Địa chỉ</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Số nhà, tên đường..." {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <FormField
+                                    control={updateAddressForm.control}
+                                    name="provinceId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Tỉnh / Thành phố</FormLabel>
+                                            <Select value={field.value} onValueChange={field.onChange}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder={isProvincesLoading ? "Đang tải..." : "Chọn tỉnh/thành phố"} />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {provinces.map((p) => (
+                                                        <SelectItem key={p.id} value={p.id}>
+                                                            {p.full_name || p.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={updateAddressForm.control}
+                                    name="districtId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Quận / Huyện</FormLabel>
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                disabled={!updateProvinceId || isDistrictsUpdateLoading}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue
+                                                            placeholder={
+                                                                !updateProvinceId
+                                                                    ? "Chọn tỉnh trước"
+                                                                    : isDistrictsUpdateLoading
+                                                                        ? "Đang tải..."
+                                                                        : "Chọn quận/huyện"
+                                                            }
+                                                        />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {districtsForUpdate.map((d) => (
+                                                        <SelectItem key={d.id} value={d.id}>
+                                                            {d.full_name || d.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <FormField
+                                control={updateAddressForm.control}
+                                name="isDefault"
+                                render={({ field }) => (
+                                    <FormItem className="flex items-center gap-2 space-y-0">
+                                        <FormControl>
+                                            <input
+                                                type="checkbox"
+                                                checked={field.value}
+                                                onChange={(e) => field.onChange(e.target.checked)}
+                                                className="h-4 w-4 rounded border-gray-300"
+                                            />
+                                        </FormControl>
+                                        <FormLabel className="!mt-0 text-sm font-normal">
+                                            Đặt làm địa chỉ mặc định
+                                        </FormLabel>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <DialogFooter>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setIsUpdateAddressOpen(false);
+                                        setAddressToUpdate(null);
+                                        updateAddressForm.reset();
+                                    }}
+                                >
+                                    Hủy
+                                </Button>
+                                <Button type="submit">Cập nhật địa chỉ</Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Address Dialog */}
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Xác nhận xóa địa chỉ</DialogTitle>
+                        <DialogDescription>
+                            Bạn có chắc chắn muốn xóa địa chỉ này? Hành động này không thể hoàn tác.
+                            {addressToDelete && (
+                                <span className="block mt-2 font-medium text-foreground">{addressToDelete.address}</span>
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setIsDeleteDialogOpen(false);
+                                setAddressToDelete(null);
+                            }}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleDeleteConfirm}
+                        >
+                            Xác nhận xóa
                         </Button>
                     </DialogFooter>
                 </DialogContent>

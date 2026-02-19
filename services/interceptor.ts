@@ -1,12 +1,12 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "https://localhost:8081",
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_BASE_URI,
   withCredentials: true,
 });
 
 export const refreshClient = axios.create({
-  baseURL: "https://localhost:8081",
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_BASE_URI,
   withCredentials: true,
 });
 

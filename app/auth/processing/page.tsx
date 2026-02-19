@@ -17,9 +17,9 @@ export default function ProcessingPage() {
       try {
         // Bước 1: Lấy token từ URL (backend redirect về /auth/processing?token=...)
         let token: string | null = null
-        
+
         try {
-          token = searchParams.get("token")
+          token = searchParams.get("token")        
         } catch (e) {
           if (typeof window !== "undefined") {
             const urlParams = new URLSearchParams(window.location.search)
@@ -27,12 +27,17 @@ export default function ProcessingPage() {
           }
         }
 
+        // Nếu không lấy được token -> báo lỗi và điều hướng về trang login
+        if (!token) {
+          return
+        }
+
         // Bước 2: Lưu access token vào localStorage
         localStorage.setItem("access_token", token)
         console.log("Token đã được lưu vào localStorage")
         
         // Bước 3: Cập nhật accessToken state
-        setAccessToken(token)
+        setAccessToken(token as string)
         
         // Đợi một chút để đảm bảo state đã được cập nhật và interceptor có thể đọc token
         await new Promise((resolve) => setTimeout(resolve, 100))

@@ -211,6 +211,7 @@ declare global {
         targetKey : string
         isActive : boolean
         startAt : string
+        endAt : string
     }
 
     interface IProvince {

@@ -9,7 +9,7 @@ export const LoginGoogle = () => {
    // Backend will handle OAuth flow and redirect to /auth/processing?token=...
    if (typeof window === "undefined") return;
    
-   window.location.href = `https://localhost:8081/api/auth/login/google`;
+   window.location.href = `${process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI}`;
 }
 
 export const Register = (email: string, userName : string, password : string, confirmPassword : string) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Package, Copy, Check, Home, Receipt } from "lucide-react";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const SuccessPage = () => {
+const SuccessPageContent = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const orderCode = searchParams.get("orderCode");
@@ -277,6 +277,23 @@ const SuccessPage = () => {
                 </div>
             </div>
         </div>
+    );
+};
+
+const SuccessPage = () => {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-screen bg-[#F7F7F8] flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Đang tải...</p>
+                    </div>
+                </div>
+            }
+        >
+            <SuccessPageContent />
+        </Suspense>
     );
 };
 

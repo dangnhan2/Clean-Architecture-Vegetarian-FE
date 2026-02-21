@@ -114,7 +114,11 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
                                             <div className="flex-1">
                                                 <span className="text-sm text-gray-500">Mô tả:</span>
                                                 <p className="mt-1 text-gray-700 leading-relaxed">
-                                                    {product.description || "Không có mô tả"}
+                                                    {typeof product.description === 'string' 
+                                                        ? product.description 
+                                                        : product.description 
+                                                            ? JSON.stringify(product.description) 
+                                                            : "Không có mô tả"}
                                                 </p>
                                             </div>
                                         </div>

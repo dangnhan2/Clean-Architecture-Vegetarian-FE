@@ -1,4 +1,5 @@
 "use client"
+import { Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -24,7 +25,7 @@ const resetPasswordSchema = z.object({
 
 type ResetPasswordValues = z.infer<typeof resetPasswordSchema>
 
-export default function ResetPasswordPage({ email }: { email?: string }) {
+function ResetPasswordPageContent({ email }: { email?: string }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const finalEmail = email || searchParams.get("email") || ""
@@ -105,6 +106,27 @@ export default function ResetPasswordPage({ email }: { email?: string }) {
         </Form>
       </div>
     </div>
+  )
+}
+
+export default function ResetPasswordPage({ email }: { email?: string }) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen overflow-y-auto flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+          <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8 md:p-10">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 rounded-xl bg-gray-900 flex items-center justify-center">
+                <Lock className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-semibold text-center text-gray-900 mb-2">Đang tải...</h1>
+          </div>
+        </div>
+      }
+    >
+      <ResetPasswordPageContent email={email} />
+    </Suspense>
   )
 }
 

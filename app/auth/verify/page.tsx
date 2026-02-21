@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,7 @@ import { ArrowLeft, Mail, Loader2 } from "lucide-react"
 import { VerifyEmail, ResendEmail } from "@/services/api"
 import { toast } from "sonner"
 
-export default function VerifyEmailPage() {
+function VerifyEmailPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const flow = searchParams.get("flow") || "register"
@@ -252,3 +252,23 @@ export default function VerifyEmailPage() {
   )
 }
 
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-8 md:p-10">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 rounded-lg bg-gray-900 flex items-center justify-center">
+                <Mail className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">Đang tải...</h1>
+          </div>
+        </div>
+      }
+    >
+      <VerifyEmailPageContent />
+    </Suspense>
+  )
+}

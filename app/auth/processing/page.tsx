@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/context/context"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 
-export default function ProcessingPage() {
+function ProcessingPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { refresh, setAccessToken } = useAuth()
@@ -142,5 +142,26 @@ export default function ProcessingPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function ProcessingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-8 md:p-10 text-center">
+            <div className="flex justify-center mb-6">
+              <Loader2 className="h-12 w-12 animate-spin text-gray-900" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+              Đang tải...
+            </h1>
+          </div>
+        </div>
+      }
+    >
+      <ProcessingPageContent />
+    </Suspense>
   )
 }

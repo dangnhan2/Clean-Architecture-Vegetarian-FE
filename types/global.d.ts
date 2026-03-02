@@ -125,7 +125,7 @@ declare global {
         orderStatus : number
         totalAmount : number
         orderCode : number
-        paymentMethod : string
+        paymentMethod : number
         menus : IItemHistory[] 
     }
 
@@ -242,14 +242,27 @@ declare global {
     }
 
     interface IDistrictData {
-        id: string,
-        code : string,
-        name : string,
-        name_en : string,
-       full_name : string,
+      id: string,
+      code : string,
+      name : string,
+      name_en : string,
+      full_name : string,
       full_name_en : string,
       latitude : string,
       longitude : string
+    }
+    
+    interface IBank{
+        code : string,
+        desc : string,
+        data : IBankData[]
+    }
+
+    interface IBankData{
+       id : number,
+       name : string,
+       bin : string,
+       shortName: string
     }
         
 }

@@ -52,7 +52,8 @@ interface AddressValues {
 const CheckoutPage = () => {
     const { cart, user, fetchCart } = useAuth();
     const router = useRouter();
-    const [paymentMethod, setPaymentMethod] = useState<"QR" | "COD">("QR");
+    // 0 = COD, 1 = QR (lưu trong state dưới dạng string để dùng với RadioGroup, nhưng gửi lên API là number)
+    const [paymentMethod, setPaymentMethod] = useState<"0" | "1">("1");
 
     // Voucher
     const [voucherDialogOpen, setVoucherDialogOpen] = useState(false);
@@ -438,10 +439,10 @@ const CheckoutPage = () => {
 
         setIsPlacingOrder(true);
         try {
-            if (paymentMethod === "QR") {
+            if (paymentMethod === "1") { // QR
                 // Prepare returnUrl for backend to create RETURN_URL with orderCode
                 const returnUrl = typeof window !== "undefined" 
-                    ? `${window.location.origin}/checkout/success?orderCode={orderCode}&paymentMethod=QR`
+                    ? `${window.location.origin}/checkout/success?orderCode={orderCode}&paymentMethod=1`
                     : undefined;
                 
                 let res = await CreateOrderWithQR(
@@ -449,7 +450,7 @@ const CheckoutPage = () => {
                     appliedVoucherId,
                     selectedAddressId,
                     note || null,
-                    paymentMethod,
+                    Number(paymentMethod), // 1 = QR
                     total,
                     returnUrl
                 );
@@ -474,13 +475,13 @@ const CheckoutPage = () => {
                     toast.error(res.message || "Không thể đặt hàng. Vui lòng thử lại");
                 }
             }
-            else if (paymentMethod === "COD") {
+            else if (paymentMethod === "0") { // COD
                 let res = await CreateOrderWithCOD(
                     user.id,
                     appliedVoucherId,
                     selectedAddressId,
                     note || null,
-                    paymentMethod,
+                    Number(paymentMethod),
                     total
                 );
                 if (res.isSuccess && Number(res.statusCode) === 201) {
@@ -680,29 +681,29 @@ const CheckoutPage = () => {
                                 <RadioGroup
                                     value={paymentMethod}
                                     onValueChange={(value) =>
-                                        setPaymentMethod(value as "QR" | "COD")
+                                        setPaymentMethod(value as "0" | "1")
                                     }
                                     className="space-y-3"
                                 >
                                     <label
-                                        className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${paymentMethod === "QR"
+                                        className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${paymentMethod === "1"
                                             ? "border-black bg-gray-50"
                                             : "border-gray-200 hover:border-gray-300"
                                             }`}
                                     >
-                                        <RadioGroupItem value="QR" id="QR" />
+                                        <RadioGroupItem value="1" id="QR" />
                                         <span className="font-semibold">
                                             Thanh toán với mã QR
                                         </span>
                                     </label>
 
                                     <label
-                                        className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${paymentMethod === "COD"
+                                        className={`flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${paymentMethod === "0"
                                             ? "border-black bg-gray-50"
                                             : "border-gray-200 hover:border-gray-300"
                                             }`}
                                     >
-                                        <RadioGroupItem value="COD" id="COD" />
+                                        <RadioGroupItem value="0" id="COD" />
                                         <span className="font-semibold">Thanh toán khi nhận hàng</span>
                                     </label>
                                 </RadioGroup>
@@ -966,7 +967,7 @@ const CheckoutPage = () => {
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Phương thức thanh toán:</span>
                                 <span className="font-semibold">
-                                    {paymentMethod === "QR" ? "Thanh toán QR" : "Thanh toán khi nhận hàng"}
+                                    {paymentMethod === "1" ? "Thanh toán QR" : "Thanh toán khi nhận hàng"}
                                 </span>
                             </div>
                         </div>

@@ -31,6 +31,7 @@ const ProfilePage = () => {
   const [isUpdateAddressOpen, setIsUpdateAddressOpen] = useState(false);
   const [addressToUpdate, setAddressToUpdate] = useState<IAddress | null>(null);
   const [isSettingDefault, setIsSettingDefault] = useState<string | null>(null);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   const storageKey = "profileActiveTab";
 
@@ -307,15 +308,20 @@ const ProfilePage = () => {
   };
 
   const handleUpdateProfile = async (values: ProfileValues) => {
-    let res = await UpdateProfile(user?.id, values.phoneNumber, values.avatar);
-    if (res.isSuccess && Number(res.statusCode) === 200) {
-      toast.success(res.message);
-      refresh();
-      // Reset avatar field sau khi submit thành công và quay về ảnh gốc
-      profileForm.setValue("avatar", undefined);
-      setAvatarPreview(user?.imageUrl);
-    } else {
-      toast.error(res.message);
+    setIsUpdatingProfile(true);
+    try {
+      let res = await UpdateProfile(user?.id, values.phoneNumber, values.avatar);
+      if (res.isSuccess && Number(res.statusCode) === 200) {
+        toast.success(res.message);
+        refresh();
+        // Reset avatar field sau khi submit thành công và quay về ảnh gốc
+        profileForm.setValue("avatar", undefined);
+        setAvatarPreview(user?.imageUrl);
+      } else {
+        toast.error(res.message);
+      }
+    } finally {
+      setIsUpdatingProfile(false);
     }
   };
 
@@ -573,7 +579,13 @@ const ProfilePage = () => {
 
                 {/* Bottom submit button spans grid */}
                 <div className="sm:col-span-3">
-                  <Button type="submit" variant="outline">Cập nhật thông tin</Button>
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    disabled={isUpdatingProfile}
+                  >
+                    {isUpdatingProfile ? "Đang cập nhật..." : "Cập nhật thông tin"}
+                  </Button>
                 </div>
               </form>
             </Form>

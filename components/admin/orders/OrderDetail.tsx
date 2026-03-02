@@ -7,33 +7,63 @@ interface OrderDetailProps {
     order: IOrderHistory;
 }
 
+const getPaymentMethodLabel = (
+    method: number | string | null | undefined
+): string => {
+    if (method === 1 || method === "1" || method === "QR") {
+        return "Thanh toán QR";
+    }
+    if (method === 0 || method === "0" || method === "COD") {
+        return "Thanh toán khi nhận hàng";
+    }
+    return method ? String(method) : "--";
+};
+
+// Thiết kế badge trạng thái bám theo mapping ở trang purchase
+// 1: Đã thanh toán (default)
+// 2: Hết hạn thanh toán (destructive)
+// 3: Đã hủy (outline)
+// 4: Hoàn tiền (secondary)
+// 5: Đã xác nhận đơn hàng (default)
 const getOrderStatusBadge = (status: number) => {
-    if (status === 1) {
-        return (
-            <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                Hoàn thành
-            </Badge>
-        );
+    switch (status) {
+        case 1:
+            return (
+                <Badge variant="default" className="bg-green-600 text-white hover:bg-green-700">
+                    Đã thanh toán
+                </Badge>
+            );
+        case 2:
+            return (
+                <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100">
+                    Hết hạn thanh toán
+                </Badge>
+            );
+        case 3:
+            return (
+                <Badge variant="outline" className="border-gray-300 text-gray-700">
+                    Đã hủy
+                </Badge>
+            );
+        case 4:
+            return (
+                <Badge variant="secondary" className="bg-purple-100 text-purple-700 hover:bg-purple-100">
+                    Hoàn tiền
+                </Badge>
+            );
+        case 5:
+            return (
+                <Badge variant="default" className="bg-blue-600 text-white hover:bg-blue-700">
+                    Đã xác nhận đơn hàng
+                </Badge>
+            );
+        default:
+            return (
+                <Badge variant="outline" className="border-gray-300 text-gray-600">
+                    Không xác định
+                </Badge>
+            );
     }
-    if (status === 2) {
-        return (
-            <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100">
-                Hủy đơn
-            </Badge>
-        );
-    }
-    if (status === 3) {
-        return (
-            <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
-                Confirm
-            </Badge>
-        );
-    }
-    return (
-        <Badge variant="secondary" className="bg-gray-100 text-gray-600 hover:bg-gray-100">
-            Đang xử lý
-        </Badge>
-    );
 };
 
 const OrderDetail = ({ order }: OrderDetailProps) => {
@@ -80,10 +110,7 @@ const OrderDetail = ({ order }: OrderDetailProps) => {
                     <p className="text-sm text-gray-500 mb-1">Phương thức thanh toán</p>
                     <div className="mt-1">
                         <Badge variant="outline">
-                            {order.paymentMethod === "QR" ? "Thanh toán QR" : 
-                             order.paymentMethod === "COD" ? "Thanh toán khi nhận hàng" :
-                             order.paymentMethod === "PayOS" ? "PayOS" :
-                             order.paymentMethod || "--"}
+                            {getPaymentMethodLabel(order.paymentMethod)}
                         </Badge>
                     </div>
                 </div>

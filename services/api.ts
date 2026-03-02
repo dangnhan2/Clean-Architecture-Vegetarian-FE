@@ -238,6 +238,10 @@ export const CreateVoucher = (code : string,  discountType : string, discountVal
     return axios.post<IBackendRes<IVoucher>>(`/api/admin/voucher`, {code, discountType, discountValue, maxDiscount, minOrderAmount, startDate, endDate, usageLimit, perUserLimit, isActive});
 }
 
+export const CancelOrder = (orderId : string, userId : string, reason : string, paymentMethod : number, bankBin :string, bankAccountNumber :string) => {
+    return axios.post<IBackendRes<string>>(`/api/common/order/${orderId}/cancel`, {userId, reason, paymentMethod, bankBin, bankAccountNumber});
+}
+
 export const EditVoucher = (id : string, code : string,  discountType : string, discountValue : number, maxDiscount : number, minOrderAmount : number, startDate : string, endDate : string, usageLimit : number, perUserLimit : number, isActive : boolean) => {
     return axios.put<IBackendRes<IVoucher>>(`/api/admin/voucher/${id}`, {code, discountType, discountValue, maxDiscount, minOrderAmount, startDate, endDate, usageLimit, perUserLimit, isActive});
 }
@@ -250,7 +254,7 @@ export const ValidateVoucher = (userId : string, voucherId : string) => {
     return axios.post<IBackendRes<IVoucherValidationInfo>>(`/api/common/user/voucher/validation`, {userId, voucherId});
 }
 
-export const CreateOrderWithQR = (userId : string, voucherId : string | null | undefined, addressId : string, note : string | null | undefined, paymentMethod : string, totalAmount : number, returnUrl? : string) => {
+export const CreateOrderWithQR = (userId : string, voucherId : string | null | undefined, addressId : string, note : string | null | undefined, paymentMethod : number, totalAmount : number, returnUrl? : string) => {
     const payload: any = {userId, voucherId, addressId, note, paymentMethod, totalAmount};
     if (returnUrl) {
         payload.returnUrl = returnUrl;
@@ -258,7 +262,7 @@ export const CreateOrderWithQR = (userId : string, voucherId : string | null | u
     return axios.post<IBackendRes<IOrderInfo>>(`/api/common/order/qr`, payload);
 }
 
-export const CreateOrderWithCOD = (userId : string, voucherId : string | null | undefined, addressId : string, note : string | null | undefined, paymentMethod : string, totalAmount : number) => {
+export const CreateOrderWithCOD = (userId : string, voucherId : string | null | undefined, addressId : string, note : string | null | undefined, paymentMethod : number, totalAmount : number) => {
     return axios.post<IBackendRes<Number>>(`/api/common/order/cod`, {userId, voucherId, addressId, note, paymentMethod, totalAmount});
 }
 

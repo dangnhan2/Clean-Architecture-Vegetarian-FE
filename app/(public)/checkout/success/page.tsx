@@ -61,8 +61,9 @@ const SuccessPageContent = () => {
     };
 
     const getPaymentMethodText = (method: string | null) => {
-        if (method === "QR") return "Thanh toán QR";
-        if (method === "COD") return "Thanh toán khi nhận hàng";
+        // Hỗ trợ cả kiểu cũ ("QR" / "COD") và kiểu mới ("1" / "0")
+        if (method === "QR" || method === "1") return "Thanh toán QR";
+        if (method === "COD" || method === "0") return "Thanh toán khi nhận hàng";
         return "Thanh toán";
     };
 

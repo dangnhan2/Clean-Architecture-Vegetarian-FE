@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, Plus, Star } from "lucide-react";
+import { ChevronLeft, Plus, Star, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -170,14 +170,6 @@ const ProductDetailPage = () => {
                 {/* Separator */}
                 <div className="border-t border-gray-200"></div>
 
-                {/* Description Section */}
-                <div className="space-y-2">
-                  <h2 className="text-base md:text-lg font-bold text-gray-900">Mô tả</h2>
-                  <div className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    <DescriptionRenderer description={product?.description} />
-                  </div>
-                </div>
-
                 {/* Category Section */}
                 <Card>
                   <CardContent className="p-3 md:p-4">
@@ -225,6 +217,26 @@ const ProductDetailPage = () => {
           </CardContent>
         </Card>
 
+        {/* Description Section */}
+        <Card className="mt-6 md:mt-8 border border-gray-200 shadow-sm overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-100 px-4 py-3 md:px-5 md:py-4">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-base md:text-lg font-bold text-gray-900">Mô tả sản phẩm</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6">
+            {product?.description ? (
+              <div className="text-sm md:text-base text-gray-700 leading-relaxed description-content">
+                <DescriptionRenderer description={product?.description} />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-6 md:py-8">
+                <p className="text-sm md:text-base text-gray-400 italic">Chưa có mô tả cho sản phẩm này</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Reviews Section */}
         {product?.id && (
           <div className="mt-6 md:mt-8 lg:mt-12 mb-6 md:mb-8 lg:mb-12" id="reviews">
@@ -242,7 +254,7 @@ const ProductDetailPage = () => {
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 md:mb-6 lg:mb-8">
             Có thể bạn cũng thích
           </h2>
-          
+
           {/* Loading State */}
           {isLoading && (
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6">

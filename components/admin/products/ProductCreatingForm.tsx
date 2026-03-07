@@ -3,7 +3,8 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -15,11 +16,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Upload, X } from "lucide-react";
 import { CreateFoodItem } from "@/services/api";
 import { convertDescriptionToHtmlString } from "@/lib/utils";
+import "react-quill-new/dist/quill.snow.css";
+
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const productSchema = z.object({
     name: z.string().min(1, {
@@ -416,11 +419,28 @@ const ProductCreatingForm = ({ categories, onSuccess, onCancel }: ProductCreatin
                             <FormItem>
                                 <FormLabel>Mô tả</FormLabel>
                                 <FormControl>
-                                    <Textarea
-                                        placeholder="Nhập mô tả món ăn (tùy chọn)"
-                                        className="min-h-[260px] bg-white"
-                                        {...field}
-                                    />
+                                    <div className="bg-white rounded-md border border-gray-200">
+                                        <ReactQuill
+                                            theme="snow"
+                                            value={field.value || ""}
+                                            onChange={(value: string) => {
+                                                field.onChange(value);
+                                            }}
+                                            placeholder="Nhập mô tả món ăn (tùy chọn)"
+                                            modules={{
+                                                toolbar: [
+                                                    [{ header: [1, 2, 3, false] }],
+                                                    ["bold", "italic", "underline", "strike"],
+                                                    [{ color: [] }, { background: [] }],
+                                                    [{ list: "ordered" }, { list: "bullet" }],
+                                                    [{ align: [] }],
+                                                    ["link", "image"],
+                                                    ["clean"],
+                                                ],
+                                            }}
+                                            style={{ minHeight: "260px" }}
+                                        />
+                                    </div>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

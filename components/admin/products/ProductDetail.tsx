@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star, Package, Tag, DollarSign, ShoppingCart, CheckCircle2, XCircle, Percent } from "lucide-react";
+import { convertDescriptionToHtmlString } from "@/lib/utils";
 
 interface ProductDetailProps {
     product: IFoodItem;
@@ -22,21 +23,6 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
         return Math.max(1, Math.round(percent));
     };
 
-    const renderStars = (rating: number) => {
-        const fullStars = Math.floor(rating);
-        const hasHalfStar = rating % 1 >= 0.5;
-
-        return Array.from({ length: 5 }).map((_, idx) => {
-            if (idx < fullStars) {
-                return <Star key={idx} className="h-5 w-5 fill-amber-400 text-amber-400" />;
-            } else if (idx === fullStars && hasHalfStar) {
-                return <Star key={idx} className="h-5 w-5 fill-amber-400 text-amber-400 opacity-50" />;
-            } else {
-                return <Star key={idx} className="h-5 w-5 text-gray-300" />;
-            }
-        });
-    };
-
     return (
         <div className="space-y-6">
             {/* Main Product Card */}
@@ -48,8 +34,8 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
                             <Badge
                                 variant={product.isAvailable ? "default" : "secondary"}
                                 className={`text-xs sm:text-sm ${product.isAvailable
-                                        ? "bg-green-100 text-green-700 hover:bg-green-100 border-green-200"
-                                        : "bg-gray-100 text-gray-600 hover:bg-gray-100 border-gray-200"
+                                    ? "bg-green-100 text-green-700 hover:bg-green-100 border-green-200"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-100 border-gray-200"
                                     }`}
                             >
                                 {product.isAvailable ? (
@@ -113,13 +99,18 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
                                             <Package className="h-5 w-5 text-purple-600 mt-0.5" />
                                             <div className="flex-1">
                                                 <span className="text-sm text-gray-500">Mô tả:</span>
-                                                <p className="mt-1 text-gray-700 leading-relaxed">
-                                                    {typeof product.description === 'string' 
-                                                        ? product.description 
-                                                        : product.description 
-                                                            ? JSON.stringify(product.description) 
-                                                            : "Không có mô tả"}
-                                                </p>
+                                                {product.description ? (
+                                                    <div
+                                                        className="mt-1 text-gray-700 leading-relaxed description-content"
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: typeof product.description === 'string'
+                                                                ? product.description
+                                                                : convertDescriptionToHtmlString(product.description)
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <p className="mt-1 text-gray-700 leading-relaxed">Không có mô tả</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -163,7 +154,7 @@ const ProductDetail = ({ product }: ProductDetailProps) => {
                                         Đánh giá
                                     </h3>
                                     <div className="space-y-3">
-                                        <div className="flex items-center gap-3">                               
+                                        <div className="flex items-center gap-3">
                                             <div className="flex items-center gap-2">
                                                 <div className="flex items-center gap-1 text-amber-500">
                                                     <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
